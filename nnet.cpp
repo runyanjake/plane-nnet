@@ -1,8 +1,11 @@
 #include "nnet.h"
+#include <time.h>
 
 	NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid), num_outputs(out){
 		printf("Network initializing with %d input nodes, %d hidden nodes, and %d output nodes.\n",
 				num_inputs, num_hidden, num_outputs);
+
+		srand(std::time(nullptr)); //seed clock with time elapsed since jan 1 1970
 
 		//default values for matrix
 		int i;
