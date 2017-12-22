@@ -4,6 +4,8 @@
 #define MAX_CONNECTION_NUMBER 100
 #define MIN_CONNECTION_VALUE 5
 #define MAX_CONNECTION_VALUE 95
+#define PUNISHMENT_FACTOR 0.90
+#define REWARD_FACTOR 1.15
 
 typedef struct node {
 	double node_val;
@@ -29,6 +31,7 @@ public:
 
 	void train();
 	int evaluate(std::vector<double> solution);
+	void backpropagate(std::vector<double> solution);
 
 	void log(int numcorrect);
 };

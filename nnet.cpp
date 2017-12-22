@@ -96,7 +96,7 @@
 				total += inputvals.at(j).node_val * inputvals.at(j).weights.at(i);
 				printf("\tFound input value of %f for hidden node %d\n", inputvals.at(j).weights.at(i), i);
 			}
-			printf("\tAverage is %f / %d =  %f\n", total, numzeroes, total / (num_inputs - numzeroes));
+			printf("\tAverage is %f / %d =  %f\n", total, num_inputs - numzeroes, total / (num_inputs - numzeroes));
 			if(numzeroes != num_inputs) 
 				total /= (num_inputs - numzeroes); 
 			//update hidden node values as a 0 or 1 
@@ -119,9 +119,9 @@
 				total += hiddenvals.at(j).node_val * hiddenvals.at(j).weights.at(i);
 				printf("\tFound input value of %f for output node %d\n", hiddenvals.at(j).weights.at(i), i);
 			}
-			printf("\tAverage is %f / %d =  %f\n", total, numzeroes, total / (num_inputs - numzeroes));
-			if(numzeroes != num_inputs)
-				total /= (num_inputs - numzeroes);
+			printf("\tAverage is %f / %d =  %f\n", total, num_hidden - numzeroes, total / (num_hidden - numzeroes));
+			if(numzeroes != num_hidden)
+				total /= (num_hidden - numzeroes);
 			//update output node values as a 0 or 1 
 			if(total < 0.50){
 				outputvals.at(i).node_val = 0.0;
@@ -148,8 +148,12 @@
 				printf("Incorrect Node value: %f vs %f.\n", outputvals.at(a).node_val, solution.at(a));
 			}
 		}
-
+		backpropagate(solution);
 		return numcorrect;
+	}
+
+	void NeuralNet::backpropagate(std::vector<double> solution){
+
 	}
 
 
