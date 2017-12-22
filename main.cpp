@@ -9,8 +9,8 @@ int main(int argc, char *argv[]){
 
 	NeuralNet network = NeuralNet::NeuralNet(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 
-	network.printNodes();
+	//network.printNodes();
+	//network.printWeights();
 
-	std::cout << "Network dimensions: " << network.getInputs() << " input nodes, " << network.getHidden() << " hidden nodes, " << network.getOutputs() << " output nodes." << std::endl;
 	return 0;
 }

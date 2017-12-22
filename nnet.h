@@ -7,7 +7,7 @@
 
 typedef struct node {
 	int node_val;
-	std::vector<node*> connections[MAX_CONNECTION_NUMBER];
+	std::vector<double> weights;
 }node;
 
 class NeuralNet {
@@ -16,8 +16,18 @@ private:
 	std::vector<node> inputvals, hiddenvals, outputvals;
 public:
 	NeuralNet(int in, int hid, int out);
+
 	int getInputs(){ return num_inputs; }
 	int getHidden(){ return num_hidden; }
 	int getOutputs(){ return num_outputs; }
+
 	void printNodes();
+	void printWeights();
+
+	void trainTo(std::vector<node> solution); //size must equal number of inputs/outputs
+	void trainFor(int itors);
+
+	void train();
+	void evaluate();
+	void backpropagate();
 };
