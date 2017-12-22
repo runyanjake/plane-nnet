@@ -2,11 +2,11 @@
 #include <vector>
 
 #define MAX_CONNECTION_NUMBER 100
-#define LOW_CONNECTION_VALUE 0.05
-#define MAX_CONNECTION_VALUE 1.95
+#define MIN_CONNECTION_VALUE 5
+#define MAX_CONNECTION_VALUE 95
 
 typedef struct node {
-	int node_val;
+	double node_val;
 	std::vector<double> weights;
 }node;
 
@@ -28,6 +28,7 @@ public:
 	void trainFor(int itors);
 
 	void train();
-	void evaluate();
-	void backpropagate();
+	int evaluate(std::vector<double> solution);
+
+	void log(int numcorrect);
 };
