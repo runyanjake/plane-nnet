@@ -26,12 +26,14 @@ public:
 	void printNodes();
 	void printWeights();
 
-	void trainTo(std::vector<node> solution); //size must equal number of inputs/outputs
-	void trainFor(int itors);
+	void trainTo(std::vector<double> solution); //size must equal number of inputs/outputs
+	void trainFor(int itors, std::vector<double> solution);
 
 	void train();
 	int evaluate(std::vector<double> solution);
 	void backpropagate(std::vector<double> solution);
 
-	void log(int numcorrect);
+	void begin_log();
+	void entry(int numcorrect, int log_width);
+	void fin_log();
 };

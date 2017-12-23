@@ -148,12 +148,77 @@
 				printf("Incorrect Node value: %f vs %f.\n", outputvals.at(a).node_val, solution.at(a));
 			}
 		}
-		backpropagate(solution);
 		return numcorrect;
 	}
 
 	void NeuralNet::backpropagate(std::vector<double> solution){
+		for(int i = 0; i < num_outputs; ++i){
+			for(int j = 0; j < num_hidden; ++j){
+				//change hidden-output weights
+				if(outputvals.at(i).node_val == solution.at(i)){ //reward
+					hiddenvals.at(j).weights.at(i) *= REWARD_FACTOR;
+				}else{ //punish
+					hiddenvals.at(j).weights.at(i) *= PUNISHMENT_FACTOR;
+				}
+			}
+			//for each output, propagate through the hidden and input's weights
+			std::vector<double> hidden_correctness_vals;
+			for(int k = 0; k < num_hidden; ++k){
+				double avg = 0.0;
+				int num_contributions = 0;
+				for(int j = 0; j < num_outputs; ++j){
+					//compute hidden correctness values
+					if(outputvals.at(j).node_val == solution.at(j)){
+						++num_contributions;
+						avg += 1.0 * hiddenvals.at(k).weights.at(j);
+					}
+				}
+				avg /= num_contributions;
+				printf("Hidden Layer %d correctness value: %f\n", k, avg);
+				//change input-hidden weights
+				for(int j = 0; j < num_inputs; ++j){
+					if(outputvals.at(i).node_val == solution.at(i)){
+						inputvals.at(j).weights.at(k) *= (REWARD_FACTOR * avg);
+					}else{
+						inputvals.at(j).weights.at(k) *= (PUNISHMENT_FACTOR * avg);
+					}
+				}
+			}
+		}
+	}
 
+	void NeuralNet::trainTo(std::vector<double> solution){
+	}
+
+	void NeuralNet::trainFor(int itors, std::vector<double> solution){
+		for(int a = 0; a < itors; ++a){
+			train();
+			int numcorrect = evaluate(solution);
+			backpropagate(solution);
+			begin_log();
+			entry(numcorrect, 59);
+		}
+	}
+
+	void NeuralNet::entry(int numcorrect, int log_width){
+		FILE* log = fopen("log.txt", "a");
+		double acc_ratio = (double)numcorrect / (double)num_outputs;
+		int numticks = (int)((double)log_width * acc_ratio);
+		fprintf(log, "[");
+		for(int a = 0; a < numticks; ++a) fprintf(log, "=");
+		for(int a = 0; a < log_width - numticks; ++a) fprintf(log, " ");
+		fprintf(log, "] Accuracy was %.2f percent.\n", acc_ratio*100);
+	}
+
+	void NeuralNet::begin_log(){
+		FILE* log = fopen("log.txt", "a");
+		time_t timer;
+		long deltat = std::time(&timer);
+		long secs = deltat % 60;
+		long mins = (int)(deltat/60)%60;
+		long hrs = (int)(deltat/3600)%24;
+		fprintf(log, "\n******************* Log Entry at %ld:%ld.%ld ********************\n", hrs, mins, secs);
+		fclose(log);
 	}
 
 
