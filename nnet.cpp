@@ -87,48 +87,48 @@
 		}
 		//update hidden values
 		for(i = 0; i < num_hidden; ++i){
-			printf("\nInitial node value for hidden %d is %f\n", i, hiddenvals.at(i).node_val);
+			//printf("\nInitial node value for hidden %d is %f\n", i, hiddenvals.at(i).node_val);
 			int numzeroes = 0;
 			double total = 0;
 			for(int j = 0; j < num_inputs; ++j){
 				if(inputvals.at(j).node_val == 0) ++numzeroes;
-				printf("\t%f * %f.\n", inputvals.at(j).node_val, inputvals.at(j).weights.at(i));
+				//printf("\t%f * %f.\n", inputvals.at(j).node_val, inputvals.at(j).weights.at(i));
 				total += inputvals.at(j).node_val * inputvals.at(j).weights.at(i);
-				printf("\tFound input value of %f for hidden node %d\n", inputvals.at(j).weights.at(i), i);
+				//printf("\tFound input value of %f for hidden node %d\n", inputvals.at(j).weights.at(i), i);
 			}
-			printf("\tAverage is %f / %d =  %f\n", total, num_inputs - numzeroes, total / (num_inputs - numzeroes));
+			//printf("\tAverage is %f / %d =  %f\n", total, num_inputs - numzeroes, total / (num_inputs - numzeroes));
 			if(numzeroes != num_inputs) 
 				total /= (num_inputs - numzeroes); 
 			//update hidden node values as a 0 or 1 
 			if(total < 0.50){
 				hiddenvals.at(i).node_val = 0.0;
-				printf("Adjusted node value for hidden %d is %f\n", i, 0.0);
+				//printf("Adjusted node value for hidden %d is %f\n", i, 0.0);
 			}else{
 				hiddenvals.at(i).node_val = 1.0;
-				printf("Adjusted node value for hidden %d is %f\n", i, 1.0);
+				//printf("Adjusted node value for hidden %d is %f\n", i, 1.0);
 			}
 		}
 		//update output values
 		for(i = 0; i < num_outputs; ++i){
-			printf("\nInitial node value for output %d is %f\n", i, outputvals.at(i).node_val);
+			//printf("\nInitial node value for output %d is %f\n", i, outputvals.at(i).node_val);
 			int numzeroes = 0;
 			double total = 0;
 			for(int j = 0; j < num_hidden; ++j){
 				if(hiddenvals.at(j).node_val == 0) ++numzeroes;
-				printf("\t%f * %f.\n", hiddenvals.at(j).node_val, hiddenvals.at(j).weights.at(i));
+				//printf("\t%f * %f.\n", hiddenvals.at(j).node_val, hiddenvals.at(j).weights.at(i));
 				total += hiddenvals.at(j).node_val * hiddenvals.at(j).weights.at(i);
-				printf("\tFound input value of %f for output node %d\n", hiddenvals.at(j).weights.at(i), i);
+				//printf("\tFound input value of %f for output node %d\n", hiddenvals.at(j).weights.at(i), i);
 			}
-			printf("\tAverage is %f / %d =  %f\n", total, num_hidden - numzeroes, total / (num_hidden - numzeroes));
+			//printf("\tAverage is %f / %d =  %f\n", total, num_hidden - numzeroes, total / (num_hidden - numzeroes));
 			if(numzeroes != num_hidden)
 				total /= (num_hidden - numzeroes);
 			//update output node values as a 0 or 1 
 			if(total < 0.50){
 				outputvals.at(i).node_val = 0.0;
-				printf("Adjusted node value for output %d is %f\n", i, 0.0);
+				//printf("Adjusted node value for output %d is %f\n", i, 0.0);
 			}else{
 				outputvals.at(i).node_val = 1.0;
-				printf("Adjusted node value for output %d is %f\n", i, 1.0);
+				//printf("Adjusted node value for output %d is %f\n", i, 1.0);
 			}
 		}
 	}
@@ -142,10 +142,10 @@
 
 		for(int a = 0; a < num_outputs; ++a){
 			if(outputvals.at(a).node_val == solution.at(a)){
-				printf("Correct Node value.\n");
+				//printf("Correct Node value.\n");
 				++numcorrect;
 			}else{
-				printf("Incorrect Node value: %f vs %f.\n", outputvals.at(a).node_val, solution.at(a));
+				//printf("Incorrect Node value: %f vs %f.\n", outputvals.at(a).node_val, solution.at(a));
 			}
 		}
 		return numcorrect;
@@ -161,47 +161,116 @@
 					hiddenvals.at(j).weights.at(i) *= PUNISHMENT_FACTOR;
 				}
 			}
-			//for each output, propagate through the hidden and input's weights
-			std::vector<double> hidden_correctness_vals;
-			for(int k = 0; k < num_hidden; ++k){
-				double avg = 0.0;
-				int num_contributions = 0;
-				for(int j = 0; j < num_outputs; ++j){
-					//compute hidden correctness values
-					if(outputvals.at(j).node_val == solution.at(j)){
-						++num_contributions;
-						avg += 1.0 * hiddenvals.at(k).weights.at(j);
-					}
+		}
+		//for each output, propagate through the hidden and input's weights
+		std::vector<double> hidden_correctness_vals;
+		for(int k = 0; k < num_hidden; ++k){
+			double avg = 0.0;
+			int num_contributions = 0;
+			for(int j = 0; j < num_outputs; ++j){
+				//compute hidden correctness values
+				if(outputvals.at(j).node_val == solution.at(j)){
+					++num_contributions;
+					avg += 1.0 * hiddenvals.at(k).weights.at(j);
 				}
-				avg /= num_contributions;
-				printf("Hidden Layer %d correctness value: %f\n", k, avg);
-				//change input-hidden weights
-				for(int j = 0; j < num_inputs; ++j){
-					if(outputvals.at(i).node_val == solution.at(i)){
-						inputvals.at(j).weights.at(k) *= (REWARD_FACTOR * avg);
-					}else{
-						inputvals.at(j).weights.at(k) *= (PUNISHMENT_FACTOR * avg);
-					}
+			}
+			avg /= num_contributions;
+			//printf("Hidden Layer %d correctness value (avg weight going to outputs): %f\n", k, avg);
+			//change input-hidden weights
+			for(int j = 0; j < num_inputs; ++j){
+				if(avg < 0.50){
+					inputvals.at(j).weights.at(k) *= (PUNISHMENT_FACTOR * avg);
+				}else{
+					inputvals.at(j).weights.at(k) *= (REWARD_FACTOR * avg);
 				}
 			}
 		}
+	}
+
+	//reseeds network and weights, must have already been initialized/ 
+	void NeuralNet::reseed_network_check(){
+		//check input layer for a full layer of zeroes which is a bad idea.
+		bool has_nonzero = false;
+		int a = 0;
+		while(!has_nonzero && a < num_inputs){
+			if(inputvals.at(a).node_val != 0) has_nonzero = true;
+			++a;
+		}
+		if(!has_nonzero){ return; }
+
+
+		printf("*****\n***** Reseeding...\n");
+		printf("before reseeding:\n");
+		printNodes();
+
+
+		int i,j;
+		srand(std::time(nullptr)); //seed clock with time elapsed since jan 1 1970
+		//node vals
+		for(a = 0 ; a < num_inputs; ++a){
+			inputvals.at(a).node_val = (double)(rand() % 2);
+		}
+		for(a = 0 ; a < num_hidden; ++a){
+			hiddenvals.at(a).node_val = (double)(rand() % 2);	
+		}
+		for(a = 0 ; a < num_outputs; ++a){
+			outputvals.at(a).node_val = (double)(rand() % 2);
+		}
+		//weight vals
+		for (i = 0; i < num_inputs; ++i){
+			for(j=0; j < num_hidden; ++j){
+				double weight = (double)(rand()%(MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE) + MIN_CONNECTION_VALUE)/100.0;
+				inputvals.at(i).weights.at(j) = weight;
+			}
+		}
+		for (i = 0; i < num_hidden; ++i){
+			for(j=0; j < num_outputs; ++j){
+				double weight = (double)(rand()%(MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE) + MIN_CONNECTION_VALUE)/100.0;
+				hiddenvals.at(i).weights.at(j) = weight;
+			}
+		}
+
+
+		printf("after reseeding\n");
+		printNodes();
+
+
 	}
 
 	void NeuralNet::trainTo(std::vector<double> solution){
 	}
 
 	void NeuralNet::trainFor(int itors, std::vector<double> solution){
+		begin_log();
+		FILE* log = begin_entries();
 		for(int a = 0; a < itors; ++a){
+			printf("\n\nTraining iteration %d/%d\n", a, itors);
+
+			reseed_network_check();
+
 			train();
 			int numcorrect = evaluate(solution);
 			backpropagate(solution);
-			begin_log();
-			entry(numcorrect, 59);
+			entry(numcorrect, log, 40);
+
+			printf("Resulting state of network after iteration %d:\n", a );
+			printNodes();
+			//printWeights();
+
 		}
+		finish_entries(log);
+		finish_log();
 	}
 
-	void NeuralNet::entry(int numcorrect, int log_width){
-		FILE* log = fopen("log.txt", "a");
+	FILE* NeuralNet::begin_entries(){
+		return fopen("log.txt", "a");
+	}
+
+	void NeuralNet::finish_entries(FILE* closer){
+		fclose(closer);
+	}
+
+	void NeuralNet::entry(int numcorrect, FILE* log, int log_width){
 		double acc_ratio = (double)numcorrect / (double)num_outputs;
 		int numticks = (int)((double)log_width * acc_ratio);
 		fprintf(log, "[");
@@ -218,6 +287,17 @@
 		long mins = (int)(deltat/60)%60;
 		long hrs = (int)(deltat/3600)%24;
 		fprintf(log, "\n******************* Log Entry at %ld:%ld.%ld ********************\n", hrs, mins, secs);
+		fclose(log);
+	}
+
+	void NeuralNet::finish_log(){
+		FILE* log = fopen("log.txt", "a");
+		time_t timer;
+		long deltat = std::time(&timer);
+		long secs = deltat % 60;
+		long mins = (int)(deltat/60)%60;
+		long hrs = (int)(deltat/3600)%24;
+		fprintf(log, "****************** Log Complete at %ld:%ld.%ld *******************\n", hrs, mins, secs);
 		fclose(log);
 	}
 

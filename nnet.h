@@ -33,7 +33,11 @@ public:
 	int evaluate(std::vector<double> solution);
 	void backpropagate(std::vector<double> solution);
 
+	void reseed_network_check();
+
 	void begin_log();
-	void entry(int numcorrect, int log_width);
-	void fin_log();
+	FILE* begin_entries();
+	void entry(int numcorrect, FILE* log, int log_width);
+	void finish_entries(FILE* closer);
+	void finish_log();
 };

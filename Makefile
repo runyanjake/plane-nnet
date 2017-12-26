@@ -5,4 +5,9 @@ clean:
 	rm nnet log.txt *.o
 
 run:
-	./nnet 8 10 8
+	./nnet 4 8 4
+
+singletest:
+	-@ make clean
+	make
+	make run

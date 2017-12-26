@@ -17,10 +17,6 @@ int main(int argc, char *argv[]){
 	solution.push_back(1.0);
 	solution.push_back(0.0);
 	solution.push_back(1.0);
-	solution.push_back(0.0);
-	solution.push_back(1.0);
-	solution.push_back(0.0);
-	solution.push_back(1.0);
 
 	network.trainFor(10, solution);
 
