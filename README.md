@@ -3,11 +3,7 @@ Plane program
 
 Basic Nnet practice.
 
---Makefile Directives--
-make 		- builds program
-make clean	- cleans all generated files
-make run	- executes the program with default values.
-make singletest	- make clean > make > make run
+The training dataset used in the training of this program was provided at http://ai.stanford.edu/~btaskar/ocr/ .
 
 **** UPDATE 1/14/2018 ****
 Due to bad foresight, the original implementation of a n-bit guesser doesn't fit the train -> execute pipeline as it should to be considered a neural net.
