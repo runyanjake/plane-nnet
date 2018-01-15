@@ -1,5 +1,5 @@
 # plane-nnet
-Plane program
+OCR ML Practice
 
 Basic Nnet practice.
 
