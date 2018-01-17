@@ -68,8 +68,9 @@
 	}
 
 	void NeuralNet::printNodesOCRformat(){
-		//char hot = '';
-		//char cold = '';
+		char hot = 35;
+		char cold = 46;
+		std::cout << "hot: " << hot << " cold: " << cold << std::endl;
 		if(num_inputs != 128 || num_outputs != 26){
 			std::cout << "Incorrect Network Format for printing in the OCR format.\n";
 			return;
@@ -78,14 +79,23 @@
 		std::cout << "Input Layer Values:[\n";
 		for (int i = 0; i < num_inputs; ++i)
 		{
-			std::cout << " " << inputvals.at(i).node_val;
+			if(inputvals.at(i).node_val == 0){
+				std::cout << " " << cold;
+			}else{
+				std::cout << " " << hot;
+			}
+			
 			if((i+1) % 8 == 0) std::cout << "\n";
 		}
 		std::cout << " ]\n";
 		std::cout << "Output Layer Values: [";
 		for (int i = 0; i < num_outputs; ++i)
 		{
-			std::cout << " " << outputvals.at(i).node_val;
+			if(outputvals.at(i).node_val == 0){
+				std::cout << " " << cold;
+			}else{
+				std::cout << " " << hot;
+			}
 		}
 		std::cout << " ]\n";
 	}
