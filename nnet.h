@@ -1,3 +1,5 @@
+// $Id: nnet.h,v 1.2 2018-01-14 20:34:56-07 - - $
+
 #include <iostream>
 #include <vector>
 
@@ -24,6 +26,7 @@ public:
 	int getOutputs(){ return num_outputs; }
 
 	void printNodes();
+	void printNodesOCRformat();
 	void printWeights();
 
 	void trainTo(std::vector<double> solution); //size must equal number of inputs/outputs

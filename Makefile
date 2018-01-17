@@ -5,7 +5,7 @@ clean:
 	rm nnet log.txt *.o
 
 run:
-	./nnet 4 8 4
+	./nnet 128 8 26
 
 singletest:
 	-@ make clean

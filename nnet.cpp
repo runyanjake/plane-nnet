@@ -1,4 +1,7 @@
+// $Id: nnet.cpp,v 1.2 2018-01-14 20:34:56-07 - - $
+
 #include "nnet.h"
+
 #include <time.h>
 
 	//**** Helper Function Declarations ****
@@ -6,11 +9,6 @@
 	//************************************************************************************************************
 
 	NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid), num_outputs(out){
-		if(in != out){
-			printf("ERROR: Network intended to have same input and output size to be self-feeding.\n");
-			exit(-1);
-		}
-
 		printf("Network initializing with %d input nodes, %d hidden nodes, and %d output nodes.\n",
 				num_inputs, num_hidden, num_outputs);
 
@@ -49,6 +47,27 @@
 		for (int i = 0; i < num_hidden; ++i)
 		{
 			std::cout << " " << hiddenvals.at(i).node_val;
+		}
+		std::cout << " ]\n";
+		std::cout << "Output Layer Values: [";
+		for (int i = 0; i < num_outputs; ++i)
+		{
+			std::cout << " " << outputvals.at(i).node_val;
+		}
+		std::cout << " ]\n";
+	}
+
+	void NeuralNet::printNodesOCRformat(){
+		if(num_inputs != 128 || num_outputs != 26){
+			std::cout << "Incorrect Network Format for printing in the OCR format.\n";
+			return;
+		}
+
+		std::cout << "Input Layer Values:[\n";
+		for (int i = 0; i < num_inputs; ++i)
+		{
+			std::cout << " " << inputvals.at(i).node_val;
+			if((i+1) % 8 == 0) std::cout << "\n";
 		}
 		std::cout << " ]\n";
 		std::cout << "Output Layer Values: [";
