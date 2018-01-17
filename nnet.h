@@ -25,6 +25,8 @@ public:
 	int getHidden(){ return num_hidden; }
 	int getOutputs(){ return num_outputs; }
 
+	void setInputsFromSTFData(std::vector<std::string> data);
+
 	void printNodes();
 	void printNodesOCRformat();
 	void printWeights();
@@ -33,6 +35,7 @@ public:
 	void trainFor(int itors, std::vector<double> solution);
 
 	void train();
+	void train(std::vector<std::vector<std::string>> data);
 	int evaluate(std::vector<double> solution);
 	void backpropagate(std::vector<double> solution);
 

@@ -3,6 +3,7 @@
 #include "nnet.h"
 
 #include <time.h>
+#include <cstdlib> //atoi
 
 	//**** Helper Function Declarations ****
 
@@ -36,6 +37,15 @@
 		printf("Network initialized.\n");
 	}
 
+	void NeuralNet::setInputsFromSTFData(std::vector<std::string> data){
+		if(num_inputs != 128) std::cerr << "Error: Number of inputs not set correctly for reading from the Stanford data." << std::endl;
+		if(num_outputs != 26) std::cerr << "Error: Number of outputs not set correctly for reading from the Stanford data." << std::endl;
+		//we ignore the first 6 inputs, and then read the remaining 128.
+		for(int a = 6; a < 134; ++a){
+			inputvals.at(a-6).node_val = atoi(data.at(a).c_str()); //based on the format of the stanford data, these will all convert correctly.
+		}
+	}
+
 	void NeuralNet::printNodes(){
 		std::cout << "Input Layer Values:  [";
 		for (int i = 0; i < num_inputs; ++i)
@@ -58,6 +68,8 @@
 	}
 
 	void NeuralNet::printNodesOCRformat(){
+		//char hot = '';
+		//char cold = '';
 		if(num_inputs != 128 || num_outputs != 26){
 			std::cout << "Incorrect Network Format for printing in the OCR format.\n";
 			return;
@@ -149,6 +161,28 @@
 				outputvals.at(i).node_val = 1.0;
 				//printf("Adjusted node value for output %d is %f\n", i, 1.0);
 			}
+		}
+	}
+
+	void NeuralNet::train(std::vector<std::vector<std::string>> data){
+		for(std::vector<std::string> datum : data){
+			if(datum.size() < num_inputs) std::cerr << "Error: Training datum does not contain enough discrete values for the network." << std::endl;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		}
 	}
 

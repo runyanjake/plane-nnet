@@ -11,11 +11,19 @@ int main(int argc, char *argv[]){
 		exit(-1); //error
 	}
 
-	readLine("data/letter.data");
+	std::vector<std::vector<std::string>> data = importData("data/letter.data");
 
 	NeuralNet network = NeuralNet::NeuralNet(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 
-	network.printNodesOCRformat();
+	for(int a = 0; a < data.size(); ++a){
+		network.setInputsFromSTFData(data.at(a));
+		network.printNodesOCRformat();
+	}
+		
+
+	//network.train(data);
+
+	//network.printNodesOCRformat();
 	//network.printWeights();
 
 	// std::vector<double> solution;

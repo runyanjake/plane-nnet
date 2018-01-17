@@ -6,7 +6,7 @@
 #include <fstream>
 #include <sstream>
 
-std::vector<std::vector<std::string>> readLine(std::string filename){
+std::vector<std::vector<std::string>> importData(std::string filename){
 	std::vector<std::vector<std::string>> ans; //length depends, can be char/int/string.
 	
 	std::ifstream in = std::ifstream(filename, std::ifstream::in);
@@ -21,7 +21,7 @@ std::vector<std::vector<std::string>> readLine(std::string filename){
 
 		std::vector<std::string> lineentry;
 
-		std::cout << "Processing line " << (linenr+1) <<": " << input << std::endl;
+		std::cout << "Processed " << linenr+1 << " lines." << std::endl;
 
 		char* line = (char*)input.c_str();	
 		char* word = strtok(line, "	");
@@ -37,11 +37,6 @@ std::vector<std::vector<std::string>> readLine(std::string filename){
 
 		ans.push_back(lineentry);
 		++linenr;
-	}
-
-	std::cout << "size of line list: " << ans.size() << std::endl;
-	for(int a = 0; ; ++a){
-		std::cout << "\tans[0][" << a << "]: " << ans.at(0).at(a) << std::endl;
 	}
 
 	return ans;
