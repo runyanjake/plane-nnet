@@ -31,11 +31,11 @@ public:
 	void printNodesOCRformat();
 	void printWeights();
 
-	void trainTo(std::vector<double> solution); //size must equal number of inputs/outputs
-	void trainFor(int itors, std::vector<double> solution);
+	void trainTo(std::vector<double> solution); //depr, redo?
+	void trainFor(int itors, std::vector<double> solution); //depr, redo
+	void train(); //depr, redo?
 
-	void train();
-	void train(std::vector<std::vector<std::string>> data);
+	void trainForward(std::vector<std::string> data);
 	int evaluate(std::vector<double> solution);
 	void backpropagate(std::vector<double> solution);
 
@@ -47,3 +47,16 @@ public:
 	void finish_entries(FILE* closer);
 	void finish_log();
 };
+
+class Tester {
+public:
+	void singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod);
+private:
+	void loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod);
+};
+
+
+
+
+
+

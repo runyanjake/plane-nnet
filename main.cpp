@@ -14,11 +14,14 @@ int main(int argc, char *argv[]){
 	std::vector<std::vector<std::string>> data = importData("data/letter.data");
 
 	NeuralNet network = NeuralNet::NeuralNet(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+	Tester tester;
 
-	for(int a = 0; a < data.size(); ++a){
-		network.setInputsFromSTFData(data.at(a));
-		network.printNodesOCRformat();
-	}
+	// for(unsigned long a = 0; a < data.size(); ++a){
+	// 	network.setInputsFromSTFData(data.at(a));
+	// 	network.printNodesOCRformat();
+	// }
+
+	tester.singleHoldoutTesting(network, data, 's');
 		
 
 	//network.train(data);

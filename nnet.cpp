@@ -174,9 +174,8 @@
 		}
 	}
 
-	void NeuralNet::train(std::vector<std::vector<std::string>> data){
-		for(std::vector<std::string> datum : data){
-			if(datum.size() < num_inputs) std::cerr << "Error: Training datum does not contain enough discrete values for the network." << std::endl;
+	void NeuralNet::trainForward(std::vector<std::string> data){
+		if(data.size() < (unsigned long)num_inputs) std::cerr << "Error: Training datum does not contain enough discrete values for the network." << std::endl;
 
 
 
@@ -193,7 +192,6 @@
 
 
 
-		}
 	}
 
 	int NeuralNet::evaluate(std::vector<double> solution){
@@ -214,6 +212,7 @@
 		return numcorrect;
 	}
 
+	//WILL NEED TO MAKE CHANGE TO CHARACTER SOLUTION
 	void NeuralNet::backpropagate(std::vector<double> solution){
 		for(int i = 0; i < num_outputs; ++i){
 			for(int j = 0; j < num_hidden; ++j){
@@ -362,6 +361,51 @@
 		long hrs = (int)(deltat/3600)%24;
 		fprintf(log, "****************** Log Complete at %ld:%ld.%ld *******************\n", hrs, mins, secs);
 		fclose(log);
+	}
+
+
+//###########################################################
+
+	void Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod = 'b'){
+		std::cout << "Beginning Single Holdout testing with input method ";
+		if(inputMethod == 'b'){ std::cout << "'basic'." << std::endl; }
+		else if(inputMethod == 's'){ std::cout << "'stanford'" << std::endl; }
+		else{ std::cerr << "[INPUT FORMAT NOT RECOGNIZED]" << std::endl; } 
+
+		if(inputMethod == 'b'){
+			//another method!!!
+		}else if(inputMethod == 's'){
+			for(int holdoutIndex = 0; holdoutIndex < data.size(); ++holdoutIndex){
+				std::cout << "Training with index " << holdoutIndex << " withheld... \n";
+				//1) ZERO OUT NETOWRK VALUES FOR EACH TRIAL
+				for(int ctr = 0; ctr < data.size(); ++ctr){
+					std::vector<std::string> datum = data.at(ctr);
+					if(ctr != holdoutIndex){
+						loadData(nnet, datum, inputMethod);
+						//nnet.trainForward(datum); TODO
+						std::string solution = datum.at(1); //returns char + nullplug
+						//nnet.backpropagate(solution); string.at??
+					}
+				}
+				//2) determine correctness
+				//3) punish/reward accordingly
+			}
+			//4) load withheld value
+			//5) compute guess
+			//6) score based on the withheld value.
+		}else{
+			std::cout << "Nothing was done." << std::endl;
+		}
+	}
+
+	void Tester::loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod){
+		if(inputMethod == 'b'){
+
+		}else if(inputMethod == 's'){
+			nnet.setInputsFromSTFData(data);
+		}else{
+
+		}
 	}
 
 
