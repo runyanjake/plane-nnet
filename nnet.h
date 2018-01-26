@@ -40,6 +40,7 @@ public:
 	void backpropagate(std::vector<double> solution);
 
 	void reseed_network_check();
+	void reset_network();
 
 	void begin_log();
 	FILE* begin_entries();

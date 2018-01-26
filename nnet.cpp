@@ -125,7 +125,7 @@ void NeuralNet::trainFor(int itors, std::vector<double> solution){
 	for(int a = 0; a < itors; ++a){
 		printf("\n\nTraining iteration %d/%d\n", a, itors);
 
-		reseed_network_check();
+		reseed_network_check(); //THIS WAS REWRITTEn.
 
 		train();
 		int numcorrect = evaluate(solution);
@@ -284,13 +284,6 @@ void NeuralNet::reseed_network_check(){
 		++a;
 	}
 	if(!has_nonzero){ return; }
-
-
-	printf("*****\n***** Reseeding...\n");
-	printf("before reseeding:\n");
-	printNodes();
-
-
 	int i,j;
 	srand(std::time(nullptr)); //seed clock with time elapsed since jan 1 1970
 	//node vals
@@ -318,6 +311,32 @@ void NeuralNet::reseed_network_check(){
 	}
 	printf("after reseeding\n");
 	printNodes();
+}
+
+/*
+ * Resets the network with zeroed inputs, hiddens and outputs, and randomized weight values.
+ * These values are zeroed because the compute step gives them value.
+ */
+void NeuralNet::reset_network(){
+	if(num_inputs != 128) std::cerr << "Error: Number of inputs not set correctly for reading from the Stanford data." << std::endl;
+	if(num_outputs != 26) std::cerr << "Error: Number of outputs not set correctly for reading from the Stanford data." << std::endl;
+	int a;
+	srand(std::time(nullptr)); //seed clock with time elapsed since jan 1 1970
+	for(a=0; a<num_inputs; ++a){
+		inputvals.at(a).node_val = 0;
+		for(int b=0; b<num_hidden; ++b){
+			inputvals.at(a).weights.at(b) = (double)(rand()%(MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE) + MIN_CONNECTION_VALUE)/100.0;
+		}
+	}
+	for(a=0; a<num_hidden; ++a){
+		hiddenvals.at(a).node_val = 0;
+		for(int b=0; b<num_outputs; ++b){
+			hiddenvals.at(a).weights.at(b) = (double)(rand()%(MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE) + MIN_CONNECTION_VALUE)/100.0;
+		}
+	}
+	for(a=0; a<num_outputs; ++a){
+		outputvals.at(a).node_val = 0;
+	}
 }
 
 void NeuralNet::begin_log(){
@@ -403,7 +422,4 @@ void Tester::loadData(NeuralNet nnet, std::vector<std::string> data, char inputM
 
 	}
 }
-
-
-
 
