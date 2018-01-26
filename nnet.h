@@ -6,6 +6,8 @@
 #define MAX_CONNECTION_NUMBER 100
 #define MIN_CONNECTION_VALUE 5
 #define MAX_CONNECTION_VALUE 95
+#define MAX_NODE_VALUE 5
+#define MIN_NODE_VALUE 1
 #define PUNISHMENT_FACTOR 0.90
 #define REWARD_FACTOR 1.15
 
@@ -38,6 +40,8 @@ public:
 	void trainForward(std::vector<std::string> data);
 	int evaluate(std::vector<double> solution);
 	void backpropagate(std::vector<double> solution);
+
+	void makeGuessFromInput(); //TODO, should produce multiple guesses with probability guesses
 
 	void reseed_network_check();
 	void reset_network();

@@ -378,7 +378,12 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 	else if(inputMethod == 's'){ std::cout << "'stanford'" << std::endl; }
 	else{ std::cerr << "[INPUT FORMAT NOT RECOGNIZED]" << std::endl; } 
 
+	//Metrics
 	testResult results = {-1, -1, -1, -1.0, "[]"};
+	int numAttempted = 0;
+	int numPassed = 0;
+	int numFailed = 0;
+	double passingRate = 0.0;
 
 	if(inputMethod == 'b'){
 		//another method!!!
@@ -386,6 +391,7 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 		for(unsigned long holdoutIndex = 0; holdoutIndex < data.size(); ++holdoutIndex){
 			std::cout << "Training with index " << holdoutIndex << " withheld... \n";
 			//1) ZERO OUT NETOWRK VALUES FOR EACH TRIAL
+			nnet.reset_network();
 			for(unsigned long ctr = 0; ctr < data.size(); ++ctr){
 				std::vector<std::string> datum = data.at(ctr);
 				if(ctr != holdoutIndex){
