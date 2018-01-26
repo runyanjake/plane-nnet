@@ -202,21 +202,6 @@ void NeuralNet::train(){
 void NeuralNet::trainForward(std::vector<std::string> data){
 	if(data.size() < (unsigned long)num_inputs) std::cerr << "Error: Training datum does not contain enough discrete values for the network." << std::endl;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 int NeuralNet::evaluate(std::vector<double> solution){
@@ -381,19 +366,27 @@ void NeuralNet::finish_log(){
 
 //###########################################################
 
-void Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod = 'b'){
+	/*  a. clear network to default values
+	 * 	b. load it into network
+	 * 	c. forward computation
+	 * 	d. evaluation and backpropagation
+	 */
+
+testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod = 'b'){
 	std::cout << "Beginning Single Holdout testing with input method ";
 	if(inputMethod == 'b'){ std::cout << "'basic'." << std::endl; }
 	else if(inputMethod == 's'){ std::cout << "'stanford'" << std::endl; }
 	else{ std::cerr << "[INPUT FORMAT NOT RECOGNIZED]" << std::endl; } 
 
+	testResult results = {-1, -1, -1, -1.0, "[]"};
+
 	if(inputMethod == 'b'){
 		//another method!!!
 	}else if(inputMethod == 's'){
-		for(int holdoutIndex = 0; holdoutIndex < data.size(); ++holdoutIndex){
+		for(unsigned long holdoutIndex = 0; holdoutIndex < data.size(); ++holdoutIndex){
 			std::cout << "Training with index " << holdoutIndex << " withheld... \n";
 			//1) ZERO OUT NETOWRK VALUES FOR EACH TRIAL
-			for(int ctr = 0; ctr < data.size(); ++ctr){
+			for(unsigned long ctr = 0; ctr < data.size(); ++ctr){
 				std::vector<std::string> datum = data.at(ctr);
 				if(ctr != holdoutIndex){
 					loadData(nnet, datum, inputMethod);
@@ -411,6 +404,7 @@ void Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::s
 	}else{
 		std::cout << "Nothing was done." << std::endl;
 	}
+	return results;
 }
 
 void Tester::loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod){

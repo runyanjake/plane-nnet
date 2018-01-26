@@ -49,9 +49,17 @@ public:
 	void finish_log();
 };
 
+typedef struct testResult{
+	int testsAttempted;
+	int testsPassed;
+	int testsFailed;
+	double percentPassingRate;
+	std::string visualPassingRate; //a progress bar style depiction of correctness, '[' 78x['*'|'_'] ']'
+}testResult;
+
 class Tester {
 public:
-	void singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod);
+	testResult singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod);
 private:
 	void loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod);
 };
