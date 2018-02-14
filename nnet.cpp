@@ -17,9 +17,9 @@ NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid),
 
 	//setup random node values
 	int i,j;
-	for (i = 0; i < in; ++i){ struct node tmp; tmp.node_val = (double)(rand() % 2); inputvals.push_back(tmp); }
-	for (i = 0; i < hid; ++i){ struct node tmp; tmp.node_val = (double)(rand() % 2); hiddenvals.push_back(tmp); }
-	for (i = 0; i < out; ++i){ struct node tmp; tmp.node_val = (double)(rand() % 2); outputvals.push_back(tmp); }
+	for (i = 0; i < in; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); inputvals.push_back(tmp); }
+	for (i = 0; i < hid; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); hiddenvals.push_back(tmp); }
+	for (i = 0; i < out; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); outputvals.push_back(tmp); }
 
 	// setup random node connections
 	for (i = 0; i < in; ++i){
@@ -42,8 +42,14 @@ void NeuralNet::setInputsFromSTFData(std::vector<std::string> data){
 	if(num_outputs != 26) std::cerr << "Error: Number of outputs not set correctly for reading from the Stanford data." << std::endl;
 	//we ignore the first 6 inputs, and then read the remaining 128.
 	for(int a = 6; a < 134; ++a){
-		inputvals.at(a-6).node_val = atoi(data.at(a).c_str()); //based on the format of the stanford data, these will all convert correctly.
+        printf("%d ", atoi(data.at(a).c_str()));
+		if((atoi(data.at(a).c_str())) == 1){
+            inputvals.at(a-6).node_val = MAX_NODE_VALUE;
+		}else{
+			inputvals.at(a-6).node_val = MIN_NODE_VALUE;
+		} 
 	}
+	printf("\n");
 }
 
 void NeuralNet::printNodes(){
@@ -67,6 +73,7 @@ void NeuralNet::printNodes(){
 	std::cout << " ]\n";
 }
 
+//PRINTS EITHER COLD OR HOT
 void NeuralNet::printNodesOCRformat(){
 	char hot = 35;
 	char cold = 46;
@@ -79,7 +86,7 @@ void NeuralNet::printNodesOCRformat(){
 	std::cout << "Input Layer Values:[\n";
 	for (int i = 0; i < num_inputs; ++i)
 	{
-		if(inputvals.at(i).node_val == 0){
+		if(inputvals.at(i).node_val == MIN_NODE_VALUE){
 			std::cout << " " << cold;
 		}else{
 			std::cout << " " << hot;
@@ -298,10 +305,6 @@ void NeuralNet::reseed_network_check(){
 	printNodes();
 }
 
-/*
- * Resets the network with zeroed inputs, hiddens and outputs, and randomized weight values.
- * These values are zeroed because the compute step gives them value.
- */
 void NeuralNet::reset_network(){
 	if(num_inputs != 128) std::cerr << "Error: Number of inputs not set correctly for reading from the Stanford data." << std::endl;
 	if(num_outputs != 26) std::cerr << "Error: Number of outputs not set correctly for reading from the Stanford data." << std::endl;
@@ -363,15 +366,6 @@ void NeuralNet::finish_log(){
 	fclose(log);
 }
 
-
-//###########################################################
-
-	/*  a. clear network to default values
-	 * 	b. load it into network
-	 * 	c. forward computation
-	 * 	d. evaluation and backpropagation
-	 */
-
 testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod = 'b'){
 	std::cout << "Beginning Single Holdout testing with input method ";
 	if(inputMethod == 'b'){ std::cout << "'basic'." << std::endl; }
@@ -391,11 +385,14 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 		for(unsigned long holdoutIndex = 0; holdoutIndex < data.size(); ++holdoutIndex){
 			std::cout << "Training with index " << holdoutIndex << " withheld... \n";
 			//1) ZERO OUT NETOWRK VALUES FOR EACH TRIAL
-			nnet.reset_network();
 			for(unsigned long ctr = 0; ctr < data.size(); ++ctr){
 				std::vector<std::string> datum = data.at(ctr);
 				if(ctr != holdoutIndex){
-					loadData(nnet, datum, inputMethod);
+					nnet.printNodes();
+					nnet.setInputsFromSTFData(datum); //this works
+                    //loadData(nnet, datum, inputMethod); //this doesn't
+					nnet.printNodes();
+                    exit(0);
 					//nnet.trainForward(datum); TODO
 					std::string solution = datum.at(1); //returns char + nullplug
 					//nnet.backpropagate(solution); string.at??
@@ -414,12 +411,18 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 }
 
 void Tester::loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod){
-	if(inputMethod == 'b'){
-
-	}else if(inputMethod == 's'){
-		nnet.setInputsFromSTFData(data);
-	}else{
-
-	}
+    printf("Processing size %d datum with mode %c\n", data.size(), inputMethod);
+    nnet.setInputsFromSTFData(data);
+    // switch(inputMethod){
+    //     case 'b':
+    //         printf("loadData with method b.\n");
+    //         break;
+    //     case 's':
+    //         printf("loadData with method stanford.\n");
+    //         nnet.setInputsFromSTFData(data);
+    //         break;
+    //     default:
+    //         printf("loadData with unrecognized method.\n");
+    // }
 }
 

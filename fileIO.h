@@ -27,9 +27,6 @@ std::vector<std::vector<std::string>> importData(std::string filename){
 		char* word = strtok(line, "	");
 		while(word != NULL){
 			++wordnr;
-
-			//std::cout << "\t" << wordnr << ": " << word << std::endl;
-			//std::cout << linenr << ": " << word << std::endl;
 			lineentry.push_back(word);
 
 			word = strtok(NULL, "	");
