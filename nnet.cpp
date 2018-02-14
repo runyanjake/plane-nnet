@@ -313,19 +313,3 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 	return results;
 }
 
-void Tester::loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod){
-    // printf("Processing size %d datum with mode %c\n", data.size(), inputMethod);
-    // nnet.setInputsFromSTFData(data);
-    // switch(inputMethod){
-    //     case 'b':
-    //         printf("loadData with method b.\n");
-    //         break;
-    //     case 's':
-    //         printf("loadData with method stanford.\n");
-    //         nnet.setInputsFromSTFData(data);
-    //         break;
-    //     default:
-    //         printf("loadData with unrecognized method.\n");
-    // }
-}
-

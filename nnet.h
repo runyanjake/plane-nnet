@@ -63,8 +63,7 @@ typedef struct testResult{
 class Tester {
 public:
 	testResult singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod);
-private:
-	void loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod);
+	
 };
 
 
