@@ -12,15 +12,12 @@
 NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid), num_outputs(out){
 	printf("Network initializing with %d input nodes, %d hidden nodes, and %d output nodes.\n",
 			num_inputs, num_hidden, num_outputs);
-
 	srand(std::time(nullptr)); //seed clock with time elapsed since jan 1 1970
-
 	//setup random node values
 	int i,j;
 	for (i = 0; i < in; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); inputvals.push_back(tmp); }
 	for (i = 0; i < hid; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); hiddenvals.push_back(tmp); }
 	for (i = 0; i < out; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); outputvals.push_back(tmp); }
-
 	// setup random node connections
 	for (i = 0; i < in; ++i){
 		for(j=0; j< hid; ++j){
@@ -34,7 +31,7 @@ NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid),
 			hiddenvals.at(i).weights.push_back(weight);
 		}
 	}
-	printf("Network initialized.\n");
+	printf("Done.\n");
 }
 
 void NeuralNet::setInputsFromSTFData(std::vector<std::string> data){
@@ -42,62 +39,44 @@ void NeuralNet::setInputsFromSTFData(std::vector<std::string> data){
 	if(num_outputs != 26) std::cerr << "Error: Number of outputs not set correctly for reading from the Stanford data." << std::endl;
 	//we ignore the first 6 inputs, and then read the remaining 128.
 	for(int a = 6; a < 134; ++a){
-        printf("%d ", atoi(data.at(a).c_str()));
 		if((atoi(data.at(a).c_str())) == 1){
             inputvals.at(a-6).node_val = MAX_NODE_VALUE;
-		}else{
-			inputvals.at(a-6).node_val = MIN_NODE_VALUE;
-		} 
+        }else{ 
+            inputvals.at(a-6).node_val = MIN_NODE_VALUE;
+        } 
 	}
-	printf("\n");
 }
 
 void NeuralNet::printNodes(){
 	std::cout << "Input Layer Values:  [";
-	for (int i = 0; i < num_inputs; ++i)
-	{
-		std::cout << " " << inputvals.at(i).node_val;
-	}
-	std::cout << " ]\n";
-	std::cout << "Hidden Layer Values: [";
-	for (int i = 0; i < num_hidden; ++i)
-	{
-		std::cout << " " << hiddenvals.at(i).node_val;
-	}
-	std::cout << " ]\n";
-	std::cout << "Output Layer Values: [";
-	for (int i = 0; i < num_outputs; ++i)
-	{
-		std::cout << " " << outputvals.at(i).node_val;
-	}
+	for (int i = 0; i < num_inputs; ++i){ std::cout << " " << inputvals.at(i).node_val; }
+	std::cout << " ]\nHidden Layer Values: [";
+	for (int i = 0; i < num_hidden; ++i){ std::cout << " " << hiddenvals.at(i).node_val; }
+	std::cout << " ]\nOutput Layer Values: [";
+	for (int i = 0; i < num_outputs; ++i){ std::cout << " " << outputvals.at(i).node_val; }
 	std::cout << " ]\n";
 }
 
 //PRINTS EITHER COLD OR HOT
 void NeuralNet::printNodesOCRformat(){
-	char hot = 35;
-	char cold = 46;
+	char hot = 35, cold = 46;
 	std::cout << "hot: " << hot << " cold: " << cold << std::endl;
 	if(num_inputs != 128 || num_outputs != 26){
 		std::cout << "Incorrect Network Format for printing in the OCR format.\n";
 		return;
 	}
-
 	std::cout << "Input Layer Values:[\n";
-	for (int i = 0; i < num_inputs; ++i)
-	{
+	for (int i = 0; i < num_inputs; ++i){
 		if(inputvals.at(i).node_val == MIN_NODE_VALUE){
 			std::cout << " " << cold;
 		}else{
 			std::cout << " " << hot;
-		}
-		
+        }
 		if((i+1) % 8 == 0) std::cout << "\n";
 	}
 	std::cout << " ]\n";
 	std::cout << "Output Layer Values: [";
-	for (int i = 0; i < num_outputs; ++i)
-	{
+	for (int i = 0; i < num_outputs; ++i){
 		if(outputvals.at(i).node_val == 0){
 			std::cout << " " << cold;
 		}else{
@@ -125,7 +104,6 @@ void NeuralNet::printWeights(){
 
 void NeuralNet::trainForward(std::vector<std::string> data){
 	if(data.size() < (unsigned long)num_inputs) std::cerr << "Error: Training datum does not contain enough discrete values for the network." << std::endl;
-
 }
 
 int NeuralNet::evaluate(std::vector<double> solution){
@@ -134,7 +112,6 @@ int NeuralNet::evaluate(std::vector<double> solution){
 		exit(-1);
 	}
 	int numcorrect = 0;
-
 	for(int a = 0; a < num_outputs; ++a){
 		if(outputvals.at(a).node_val == solution.at(a)){
 			//printf("Correct Node value.\n");
@@ -288,14 +265,12 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 	if(inputMethod == 'b'){ std::cout << "'basic'." << std::endl; }
 	else if(inputMethod == 's'){ std::cout << "'stanford'" << std::endl; }
 	else{ std::cerr << "[INPUT FORMAT NOT RECOGNIZED]" << std::endl; } 
-
 	//Metrics
 	testResult results = {-1, -1, -1, -1.0, "[]"};
 	int numAttempted = 0;
 	int numPassed = 0;
 	int numFailed = 0;
 	double passingRate = 0.0;
-
 	if(inputMethod == 'b'){
 		//another method!!!
 	}else if(inputMethod == 's'){
