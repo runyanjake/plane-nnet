@@ -34,6 +34,18 @@ NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid),
 	printf("Done.\n");
 }
 
+void NeuralNet::setInputs(std::vector<std::string> data, char method = 'b'){
+    switch(method){
+        case 'b':
+            break;
+        case 's':
+            setInputsFromSTFData(data);
+            break;
+        default:
+            printf("loadData with unrecognized method.\n");
+    }
+}
+
 void NeuralNet::setInputsFromSTFData(std::vector<std::string> data){
 	if(num_inputs != 128) std::cerr << "Error: Number of inputs not set correctly for reading from the Stanford data." << std::endl;
 	if(num_outputs != 26) std::cerr << "Error: Number of outputs not set correctly for reading from the Stanford data." << std::endl;
@@ -260,13 +272,15 @@ void NeuralNet::finish_log(){
 	fclose(log);
 }
 
+//************************************************************************************************************
+
 testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<std::string>> data, char inputMethod = 'b'){
 	std::cout << "Beginning Single Holdout testing with input method ";
 	if(inputMethod == 'b'){ std::cout << "'basic'." << std::endl; }
 	else if(inputMethod == 's'){ std::cout << "'stanford'" << std::endl; }
 	else{ std::cerr << "[INPUT FORMAT NOT RECOGNIZED]" << std::endl; } 
 	//Metrics
-	testResult results = {-1, -1, -1, -1.0, "[]"};
+	testResult results = {-1, -1, -1, -1.0, "[]"}; //load into this at end
 	int numAttempted = 0;
 	int numPassed = 0;
 	int numFailed = 0;
@@ -280,22 +294,19 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 			for(unsigned long ctr = 0; ctr < data.size(); ++ctr){
 				std::vector<std::string> datum = data.at(ctr);
 				if(ctr != holdoutIndex){
-					nnet.printNodes();
-					nnet.setInputsFromSTFData(datum); //this works
-                    //loadData(nnet, datum, inputMethod); //this doesn't
-					nnet.printNodes();
-                    exit(0);
-					//nnet.trainForward(datum); TODO
+                    nnet.setInputs(datum, inputMethod); //load data in with specified method
+					//\nnet.trainForward(datum); TODO
 					std::string solution = datum.at(1); //returns char + nullplug
 					//nnet.backpropagate(solution); string.at??
 				}
+                //2) determine correctness
+                //3) punish/reward accordingly
 			}
-			//2) determine correctness
-			//3) punish/reward accordingly
+            //4) load withheld value
+            //5) compute guess
+            //6) score based on the withheld value.
+            exit(0);
 		}
-		//4) load withheld value
-		//5) compute guess
-		//6) score based on the withheld value.
 	}else{
 		std::cout << "Nothing was done." << std::endl;
 	}

@@ -20,6 +20,9 @@ class NeuralNet {
 private:
 	int num_inputs, num_hidden, num_outputs;
 	std::vector<node> inputvals, hiddenvals, outputvals;
+
+	void setInputsFromSTFData(std::vector<std::string> data);
+
 public:
 	NeuralNet(int in, int hid, int out);
 
@@ -27,7 +30,7 @@ public:
 	int numHiddens(){ return num_hidden; }
 	int numOutputs(){ return num_outputs; }
 
-	void setInputsFromSTFData(std::vector<std::string> data);
+    void setInputs(std::vector<std::string> data, char method); //this need not be implemented now
 
 	void printNodes();
 	void printNodesOCRformat();
