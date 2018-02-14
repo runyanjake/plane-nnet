@@ -123,89 +123,6 @@ void NeuralNet::printWeights(){
 	}
 }
 
-void NeuralNet::trainTo(std::vector<double> solution){
-}
-
-void NeuralNet::trainFor(int itors, std::vector<double> solution){
-	begin_log();
-	FILE* log = begin_entries();
-	for(int a = 0; a < itors; ++a){
-		printf("\n\nTraining iteration %d/%d\n", a, itors);
-
-		reseed_network_check(); //THIS WAS REWRITTEn.
-
-		train();
-		int numcorrect = evaluate(solution);
-		backpropagate(solution);
-		entry(numcorrect, log, 40);
-
-		printf("Resulting state of network after iteration %d:\n", a );
-		printNodes();
-		//printWeights();
-
-	}
-	finish_entries(log);
-	finish_log();
-}
-
-/*
-	* Copies the output values to the inputs and completes a training iteration.
-	* NOTE: DOES NOT PERFORM BACKPROPAGATION OR CORRECTNESS CHECKING
-	*/
-void NeuralNet::train(){
-	int i;
-	//copy values from output to input
-	for(i = 0; i < num_inputs; ++i){
-		inputvals.at(i).node_val = outputvals.at(i).node_val;
-	}
-	//update hidden values
-	for(i = 0; i < num_hidden; ++i){
-		//printf("\nInitial node value for hidden %d is %f\n", i, hiddenvals.at(i).node_val);
-		int numzeroes = 0;
-		double total = 0;
-		for(int j = 0; j < num_inputs; ++j){
-			if(inputvals.at(j).node_val == 0) ++numzeroes;
-			//printf("\t%f * %f.\n", inputvals.at(j).node_val, inputvals.at(j).weights.at(i));
-			total += inputvals.at(j).node_val * inputvals.at(j).weights.at(i);
-			//printf("\tFound input value of %f for hidden node %d\n", inputvals.at(j).weights.at(i), i);
-		}
-		//printf("\tAverage is %f / %d =  %f\n", total, num_inputs - numzeroes, total / (num_inputs - numzeroes));
-		if(numzeroes != num_inputs) 
-			total /= (num_inputs - numzeroes); 
-		//update hidden node values as a 0 or 1 
-		if(total < 0.50){
-			hiddenvals.at(i).node_val = 0.0;
-			//printf("Adjusted node value for hidden %d is %f\n", i, 0.0);
-		}else{
-			hiddenvals.at(i).node_val = 1.0;
-			//printf("Adjusted node value for hidden %d is %f\n", i, 1.0);
-		}
-	}
-	//update output values
-	for(i = 0; i < num_outputs; ++i){
-		//printf("\nInitial node value for output %d is %f\n", i, outputvals.at(i).node_val);
-		int numzeroes = 0;
-		double total = 0;
-		for(int j = 0; j < num_hidden; ++j){
-			if(hiddenvals.at(j).node_val == 0) ++numzeroes;
-			//printf("\t%f * %f.\n", hiddenvals.at(j).node_val, hiddenvals.at(j).weights.at(i));
-			total += hiddenvals.at(j).node_val * hiddenvals.at(j).weights.at(i);
-			//printf("\tFound input value of %f for output node %d\n", hiddenvals.at(j).weights.at(i), i);
-		}
-		//printf("\tAverage is %f / %d =  %f\n", total, num_hidden - numzeroes, total / (num_hidden - numzeroes));
-		if(numzeroes != num_hidden)
-			total /= (num_hidden - numzeroes);
-		//update output node values as a 0 or 1 
-		if(total < 0.50){
-			outputvals.at(i).node_val = 0.0;
-			//printf("Adjusted node value for output %d is %f\n", i, 0.0);
-		}else{
-			outputvals.at(i).node_val = 1.0;
-			//printf("Adjusted node value for output %d is %f\n", i, 1.0);
-		}
-	}
-}
-
 void NeuralNet::trainForward(std::vector<std::string> data){
 	if(data.size() < (unsigned long)num_inputs) std::cerr << "Error: Training datum does not contain enough discrete values for the network." << std::endl;
 
@@ -411,8 +328,8 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 }
 
 void Tester::loadData(NeuralNet nnet, std::vector<std::string> data, char inputMethod){
-    printf("Processing size %d datum with mode %c\n", data.size(), inputMethod);
-    nnet.setInputsFromSTFData(data);
+    // printf("Processing size %d datum with mode %c\n", data.size(), inputMethod);
+    // nnet.setInputsFromSTFData(data);
     // switch(inputMethod){
     //     case 'b':
     //         printf("loadData with method b.\n");

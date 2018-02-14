@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 		std::cout << "Usage: nnet [inputsize] [hiddensize] [outputsize]" << std::endl;
 		exit(-1);
 	}
-
+    
 	/*Testing pipeline
 	 * 	1. create network w default values
 	 * 	2. for each input datum

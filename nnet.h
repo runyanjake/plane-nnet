@@ -23,19 +23,15 @@ private:
 public:
 	NeuralNet(int in, int hid, int out);
 
-	int getInputs(){ return num_inputs; }
-	int getHidden(){ return num_hidden; }
-	int getOutputs(){ return num_outputs; }
+	int numInputs(){ return num_inputs; }
+	int numHiddens(){ return num_hidden; }
+	int numOutputs(){ return num_outputs; }
 
 	void setInputsFromSTFData(std::vector<std::string> data);
 
 	void printNodes();
 	void printNodesOCRformat();
 	void printWeights();
-
-	void trainTo(std::vector<double> solution); //depr, redo?
-	void trainFor(int itors, std::vector<double> solution); //depr, redo
-	void train(); //depr, redo?
 
 	void trainForward(std::vector<std::string> data);
 	int evaluate(std::vector<double> solution);
