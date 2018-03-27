@@ -1,0 +1,20 @@
+TODO:
+Cost function
+	cost = sum of sqared differences between intended output and found output.
+Thinking about backpropagation:
+	4:30 at https://www.youtube.com/watch?v=Ilg3gGewQ5U
+	each network output needs to go up or down by a different amount, dictated by its cost at that point, aka by how far off it was.
+	Generally, the node value should be calculated from the weighted sum of all nodes coming in, plus some bias value, all passed into a sigmoid
+	Modifications can be modified in 3 ways at each non-input node:
+		1) bias can be increased
+		2) certain weights can be updated
+		3) backpropagation can continue to the n+1 tier nodes
+		In general remember that larger weights have the most effect.
+
+TODOs: 
+Redo forward passing to implement better function including bias and activation function in addition to the current weighted bias updating.
+
+My understanding + battle plan for backpropagation:
+1) comparing output with expected output, gain notion of moving each output node up or down
+2) use this notion to update INDIVIDUAL weights AND come up with a combined notion of what should be done to each node in next layer.
+3) recursively use this pattern to update all inner nodes and 
