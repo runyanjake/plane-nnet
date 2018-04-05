@@ -6,8 +6,8 @@
 #define MAX_CONNECTION_NUMBER 100
 #define MIN_CONNECTION_VALUE 5
 #define MAX_CONNECTION_VALUE 95
-#define MAX_NODE_VALUE 5.0 //range is maxNV-1 to minNV, should be whole, pos, ints
-#define MIN_NODE_VALUE 1.0
+#define MAX_NODE_VALUE 1.0 //range is maxNV to minNV, inclusive, should be ints
+#define MIN_NODE_VALUE 0.0
 #define PUNISHMENT_FACTOR 0.90
 #define REWARD_FACTOR 1.15
 

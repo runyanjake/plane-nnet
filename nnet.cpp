@@ -2,6 +2,7 @@
 
 #include "nnet.h"
 
+#include <cmath> //round
 #include <time.h>
 #include <cstdlib> //atoi
 
@@ -15,9 +16,12 @@ NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid),
 	srand(std::time(nullptr)); //seed clock with time elapsed since jan 1 1970
 	//setup random node values
 	int i,j;
-	for (i = 0; i < in; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); inputvals.push_back(tmp); }
-	for (i = 0; i < hid; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); hiddenvals.push_back(tmp); }
-	for (i = 0; i < out; ++i){ struct node tmp; tmp.node_val = (double)(rand() % (int)MAX_NODE_VALUE); outputvals.push_back(tmp); }
+	for (i = 0; i < in; ++i){ 
+        struct node tmp; tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); inputvals.push_back(tmp); }
+	for (i = 0; i < hid; ++i){ 
+        struct node tmp; tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); hiddenvals.push_back(tmp); }
+	for (i = 0; i < out; ++i){ 
+        struct node tmp; tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); outputvals.push_back(tmp); }
 	// setup random node connections
 	for (i = 0; i < in; ++i){
 		for(j=0; j< hid; ++j){

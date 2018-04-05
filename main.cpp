@@ -25,6 +25,8 @@ int main(int argc, char *argv[]){
 
 	//2. load data
 	std::vector<std::vector<std::string>> data = importData("data/letter.data");
+    network.printWeights();
+    network.printNodes();
 
 	//3. perform testing
 	testResult results = tester.singleHoldoutTesting(network, data, 's');

@@ -11,3 +11,6 @@ singletest:
 	-@ make clean
 	make
 	make run
+
+test:
+	./nnet 3 4 3
