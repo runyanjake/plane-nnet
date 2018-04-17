@@ -140,7 +140,7 @@ std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
         }
     }
     for(int a=0;a<numOutputs();++a){
-        double correctionvalue = outputvals.at(((int)solution) - 97).node_val - outputvals.at(a).node_val;
+        double correctionvalue = outputvals.at(((int)solution) - 97).node_val - outputvals.at(a).node_val; //are these normalized between 0 and 1? even if the max node val is too high?
         correctionvals.push_back(correctionvalue);
     }
     return correctionvals;
@@ -148,6 +148,17 @@ std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
 
 //returns true if network guesses the passed character, false if not
 bool NeuralNet::evaluate(char solution){
+    double maxval = -1.0;
+    int index = -1;
+    for(int a=0;a<numOutputs();++a){
+        if(outputvals.at(a).node_val > maxval){
+            maxval = outputvals.at(a).node_val;
+            index = a;
+        }
+    }
+    printf("The network guesses %c.\n", index+97);
+    if(index==((int)solution)-97)
+        return true;
     return false;
 }
 
@@ -366,7 +377,9 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     // }
     forwardpropagate();
     printNodes();
-
+    bool correct = evaluate('f');
+    if(correct) printf("The network guessed correctly.\n");
+    if(!correct) printf("The network guessed incorrectly.\n");
     std::vector<double> corrvals = getCorrectionAmounts('d');
 
     //then try backprop of data
