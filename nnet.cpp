@@ -128,21 +128,16 @@ void NeuralNet::printWeights(){
 }
 
 //evaluates right or wrongness of output
-int NeuralNet::evaluate(std::vector<double> solution){
-	if((int)(solution.size()) != num_inputs){
-		printf("ERROR: Solution size not equal to network size.\n");
-		exit(-1);
-	}
-	int numcorrect = 0;
-	for(int a = 0; a < num_outputs; ++a){
-		if(outputvals.at(a).node_val == solution.at(a)){
-			//printf("Correct Node value.\n");
-			++numcorrect;
-		}else{
-			//printf("Incorrect Node value: %f vs %f.\n", outputvals.at(a).node_val, solution.at(a));
-		}
-	}
-	return numcorrect;
+void NeuralNet::evaluate(std::vector<double> solution){
+	double maxval = -1.0;
+    int index = -1;
+    for(int a=0;a<numOutputs();++a){
+        if(outputvals.at(a).node_val > maxval){
+            maxval = outputvals.at(a).node_val;
+            index = a;
+        }
+    }
+    printf("The network guesses %c with %.2f percent certainty.\n", index+97, maxval*100.0);
 }
 
 // Passing values forward
@@ -160,7 +155,8 @@ void NeuralNet::forwardpropagate(){
         double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
         hiddenvals.at(a).node_val = newnodeval;
     }
-    //2) update outputs (make guess)
+    //2) update outputs (make guess as a PERCENTAGE of total)
+    std::vector<double> rawvals;
     for(int a=0;a<numOutputs();++a){
         double total = 0.0;
         double max = 0.0;
@@ -170,8 +166,19 @@ void NeuralNet::forwardpropagate(){
         }
         double halfmax = max / 2;
         double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
-        outputvals.at(a).node_val = newnodeval;
+        rawvals.push_back(newnodeval);
     }
+    //roll up rawvals to use for percent calcs
+    double total = 0.0;
+    for(int a=0;a<rawvals.size();++a){
+        total += rawvals.at(a);
+    }
+    //put the percentage vals
+    for(int a=0;a<rawvals.size();++a){
+        double percentval = rawvals.at(a) / total;
+        outputvals.at(a).node_val = percentval;
+    }
+    
 }
 
 //Backpropagation
@@ -182,7 +189,7 @@ void NeuralNet::backpropagate(std::vector<double> solution){
 //computes the fast sigmoid value of the input value.
 // Domain: (-inf,+inf) Range: (-1,1)
 double NeuralNet::sigmoid(double x){
-    return x / (1.0 + abs(x));
+    return x / (1.0 + std::abs(x));
 }
 
 //reseeds network and weights, must have already been initialized/ 
@@ -332,22 +339,43 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
 
     //try forward pass of data with first data point
     //1)
-    double subtotals[numHiddens()];
-    for(int a=0;a<numHiddens();++a){
-        double total = 0.0;
-        double max = 0.0;
-        for(int b=0;b<numInputs();++b){
-            //printf("\t%f * %f = %f\n", inputvals.at(b).weights.at(a), inputvals.at(b).node_val, inputvals.at(b).weights.at(a) * inputvals.at(b).node_val);
-            total += inputvals.at(b).weights.at(a) * inputvals.at(b).node_val;
-            max += inputvals.at(b).weights.at(a) * MAX_NODE_VALUE;
+    // double subtotals[numHiddens()];
+    // for(int a=0;a<numHiddens();++a){
+    //     double total = 0.0;
+    //     double max = 0.0;
+    //     for(int b=0;b<numInputs();++b){
+    //         //printf("\t%f * %f = %f\n", inputvals.at(b).weights.at(a), inputvals.at(b).node_val, inputvals.at(b).weights.at(a) * inputvals.at(b).node_val);
+    //         total += inputvals.at(b).weights.at(a) * inputvals.at(b).node_val;
+    //         max += inputvals.at(b).weights.at(a) * MAX_NODE_VALUE;
+    //     }
+    //     double halfmax = max / 2;
+    //     double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
+    //     printf("Total Input to Hidden node %d (%f) / Max Input (%f) => %f ", a, total, max, total-halfmax);
+    //     printf(" > (sig(%f)+1)/2 * MAX_VAL = %f\n", total-halfmax, newnodeval);
+    // }
+    forwardpropagate();
+    printNodes();
+
+    double maxval = -1.0;
+    int index = -1;
+    for(int a=0;a<numOutputs();++a){
+        if(outputvals.at(a).node_val > maxval){
+            maxval = outputvals.at(a).node_val;
+            index = a;
         }
-        double halfmax = max / 2;
-        double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
-        printf("Total Input to Hidden node %d (%f) / Max Input (%f) => %f ", a, total, max, total-halfmax);
-        printf(" > (sig(%f)+1)/2 * MAX_VAL = %f\n", total-halfmax, newnodeval);
     }
+    printf("The network guesses %c with %.2f percent certainty.\n", index+97, maxval*100.0);
 
     //then try backprop of data
     //2) 
+    //2.1) evaluate desired amound of correction
+    std::vector<double> outCorrections;
+    std::vector<double> hidCorrections;
+    char answer = 'z';
+    int charindex = int(answer) - 97; //-offset to bring A to 0
+    printf("%c: %d\n", answer, charindex);
+    for(int a=0;a<numOutputs();++a){
+
+    }
 
 }

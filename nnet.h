@@ -36,7 +36,7 @@ public:
 	void printNodesOCRformat();
 	void printWeights();
 
-	int evaluate(std::vector<double> solution);
+	void evaluate(std::vector<double> solution);
 	void forwardpropagate();
 	void backpropagate(std::vector<double> solution);
     double sigmoid(double x);
