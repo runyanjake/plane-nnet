@@ -140,7 +140,7 @@ std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
         }
     }
     for(int a=0;a<numOutputs();++a){
-        double correctionvalue = outputvals.at(((int)solution) - 97).node_val - outputvals.at(a).node_val; //are these normalized between 0 and 1? even if the max node val is too high?
+        double correctionvalue = maxval - outputvals.at(a).node_val; //are these normalized between 0 and 1? even if the max node val is too high?
         correctionvals.push_back(correctionvalue);
     }
     return correctionvals;
@@ -162,7 +162,7 @@ bool NeuralNet::evaluate(char solution){
     return false;
 }
 
-// Passing values forward
+// Passing values forward, modifies all hidden and output nodes
 // @param data A single input sized vector
 void NeuralNet::forwardpropagate(){
     //1) update hiddens
@@ -195,7 +195,7 @@ void NeuralNet::forwardpropagate(){
     for(int a=0;a<rawvals.size();++a){
         total += rawvals.at(a);
     }
-    //put the percentage vals
+    //put the percentage vals. TOTAL IS 1.0 = 100%
     for(int a=0;a<rawvals.size();++a){
         double percentval = rawvals.at(a) / total;
         outputvals.at(a).node_val = percentval;
@@ -375,23 +375,30 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     //     printf("Total Input to Hidden node %d (%f) / Max Input (%f) => %f ", a, total, max, total-halfmax);
     //     printf(" > (sig(%f)+1)/2 * MAX_VAL = %f\n", total-halfmax, newnodeval);
     // }
+
+    setInputs(data.at(0), 's');
     forwardpropagate();
     printNodes();
     bool correct = evaluate('f');
     if(correct) printf("The network guessed correctly.\n");
     if(!correct) printf("The network guessed incorrectly.\n");
-    std::vector<double> corrvals = getCorrectionAmounts('d');
 
     //then try backprop of data
     //2) 
     //2.1) evaluate desired amound of correction
-    std::vector<double> outCorrections;
-    std::vector<double> hidCorrections;
     char answer = 'z';
-    int charindex = int(answer) - 97; //-offset to bring A to 0
-    printf("%c: %d\n", answer, charindex);
+    std::vector<double> outCorrections = getCorrectionAmounts(answer);
     for(int a=0;a<numOutputs();++a){
-
+        //look at value in outcorrections to determine correction factor
+        double correctionLevel = outCorrections.at(a);
+        if(correctionLevel == 0.0){
+            printf("Increase this value! Val = %f\n", correctionLevel);
+        }else{
+            printf("Decrease this value! Val = %f\n", correctionLevel);
+        }
+        //update first order weights
+        //update second order weights
+        //done!
     }
 
 }
