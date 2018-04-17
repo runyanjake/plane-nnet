@@ -128,7 +128,9 @@ void NeuralNet::printWeights(){
 }
 
 //evaluates right or wrongness of output
-void NeuralNet::evaluate(std::vector<double> solution){
+//Returns array depicting depression values relative to eachother and one to strengthen (the 0 value)
+std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
+    std::vector<double> correctionvals;
 	double maxval = -1.0;
     int index = -1;
     for(int a=0;a<numOutputs();++a){
@@ -137,7 +139,16 @@ void NeuralNet::evaluate(std::vector<double> solution){
             index = a;
         }
     }
-    printf("The network guesses %c with %.2f percent certainty.\n", index+97, maxval*100.0);
+    for(int a=0;a<numOutputs();++a){
+        double correctionvalue = outputvals.at(((int)solution) - 97).node_val - outputvals.at(a).node_val;
+        correctionvals.push_back(correctionvalue);
+    }
+    return correctionvals;
+}
+
+//returns true if network guesses the passed character, false if not
+bool NeuralNet::evaluate(char solution){
+    return false;
 }
 
 // Passing values forward
@@ -356,15 +367,7 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     forwardpropagate();
     printNodes();
 
-    double maxval = -1.0;
-    int index = -1;
-    for(int a=0;a<numOutputs();++a){
-        if(outputvals.at(a).node_val > maxval){
-            maxval = outputvals.at(a).node_val;
-            index = a;
-        }
-    }
-    printf("The network guesses %c with %.2f percent certainty.\n", index+97, maxval*100.0);
+    std::vector<double> corrvals = getCorrectionAmounts('d');
 
     //then try backprop of data
     //2) 

@@ -6,7 +6,7 @@
 #define MAX_CONNECTION_NUMBER 100 //may not be neeeded
 #define MIN_CONNECTION_VALUE 5 //PERCENTAGE
 #define MAX_CONNECTION_VALUE 95 //PERCENTAGE
-#define MAX_NODE_VALUE 1.0 //MAXIMUM INTEGER VAL
+#define MAX_NODE_VALUE 5.0 //MAXIMUM INTEGER VAL
 #define MIN_NODE_VALUE 0.0 //MINIMUM INTEGER VAL
 #define PUNISHMENT_FACTOR 0.90 
 #define REWARD_FACTOR 1.15
@@ -36,7 +36,8 @@ public:
 	void printNodesOCRformat();
 	void printWeights();
 
-	void evaluate(std::vector<double> solution);
+	std::vector<double> getCorrectionAmounts(char solution);
+    bool evaluate(char solution);
 	void forwardpropagate();
 	void backpropagate(std::vector<double> solution);
     double sigmoid(double x);
