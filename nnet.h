@@ -37,7 +37,7 @@ public:
 	void printWeights();
 
 	int evaluate(std::vector<double> solution);
-	void forwardpropagate(std::vector<std::string> data);
+	void forwardpropagate();
 	void backpropagate(std::vector<double> solution);
     double sigmoid(double x);
 

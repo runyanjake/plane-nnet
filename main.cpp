@@ -31,7 +31,11 @@ int main(int argc, char *argv[]){
 	//3. perform testing
 	testResult results = {0,0,0,0.0,""};
     //results = tester.singleHoldoutTesting(network, data, 's');
-    network.debugTest(data);
+
+    //TESTING STUFF
+    //network.debugTest(data);
+    network.forwardpropagate();
+    network.printNodes();
 
 	//4. Communicate test results
 	std::cout << "\n\nAll tests completed.\n" << results.testsAttempted <<

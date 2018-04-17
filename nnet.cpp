@@ -145,8 +145,9 @@ int NeuralNet::evaluate(std::vector<double> solution){
 	return numcorrect;
 }
 
-//Passing values forward
-void NeuralNet::forwardpropagate(std::vector<std::string> data){
+// Passing values forward
+// @param data A single input sized vector
+void NeuralNet::forwardpropagate(){
     //1) update hiddens
     for(int a=0;a<numHiddens();++a){
         double total = 0.0;
