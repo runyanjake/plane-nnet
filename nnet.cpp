@@ -17,11 +17,20 @@ NeuralNet::NeuralNet(int in, int hid, int out): num_inputs(in), num_hidden(hid),
 	//setup random node values
 	int i,j;
 	for (i = 0; i < in; ++i){ 
-        struct node tmp; tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); inputvals.push_back(tmp); }
+        struct node tmp; 
+        tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); 
+        inputvals.push_back(tmp); 
+    }
 	for (i = 0; i < hid; ++i){ 
-        struct node tmp; tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); hiddenvals.push_back(tmp); }
+        struct node tmp; 
+        tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); 
+        hiddenvals.push_back(tmp); 
+    }
 	for (i = 0; i < out; ++i){ 
-        struct node tmp; tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); outputvals.push_back(tmp); }
+        struct node tmp; 
+        tmp.node_val = round((((double)rand())/RAND_MAX)*(MAX_NODE_VALUE-MIN_NODE_VALUE) + MIN_NODE_VALUE); 
+        outputvals.push_back(tmp); 
+    }
 	// setup random node connections
 	for (i = 0; i < in; ++i){
 		for(j=0; j< hid; ++j){
@@ -118,10 +127,7 @@ void NeuralNet::printWeights(){
 	}
 }
 
-void NeuralNet::trainForward(std::vector<std::string> data){
-	if(data.size() < (unsigned long)num_inputs) std::cerr << "Error: Training datum does not contain enough discrete values for the network." << std::endl;
-}
-
+//evaluates right or wrongness of output
 int NeuralNet::evaluate(std::vector<double> solution){
 	if((int)(solution.size()) != num_inputs){
 		printf("ERROR: Solution size not equal to network size.\n");
@@ -139,41 +145,43 @@ int NeuralNet::evaluate(std::vector<double> solution){
 	return numcorrect;
 }
 
-//WILL NEED TO MAKE CHANGE TO CHARACTER SOLUTION
+//Passing values forward
+void NeuralNet::forwardpropagate(std::vector<std::string> data){
+    //1) update hiddens
+    for(int a=0;a<numHiddens();++a){
+        double total = 0.0;
+        double max = 0.0;
+        for(int b=0;b<numInputs();++b){
+            total += inputvals.at(b).weights.at(a) * inputvals.at(b).node_val;
+            max += inputvals.at(b).weights.at(a) * MAX_NODE_VALUE;
+        }
+        double halfmax = max / 2;
+        double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
+        hiddenvals.at(a).node_val = newnodeval;
+    }
+    //2) update outputs (make guess)
+    for(int a=0;a<numOutputs();++a){
+        double total = 0.0;
+        double max = 0.0;
+        for(int b=0;b<numHiddens();++b){
+            total += hiddenvals.at(b).weights.at(a) * hiddenvals.at(b).node_val;
+            max += hiddenvals.at(b).weights.at(a) * MAX_NODE_VALUE;
+        }
+        double halfmax = max / 2;
+        double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
+        outputvals.at(a).node_val = newnodeval;
+    }
+}
+
+//Backpropagation
 void NeuralNet::backpropagate(std::vector<double> solution){
-	for(int i = 0; i < num_outputs; ++i){
-		for(int j = 0; j < num_hidden; ++j){
-			//change hidden-output weights
-			if(outputvals.at(i).node_val == solution.at(i)){ //reward
-				hiddenvals.at(j).weights.at(i) *= REWARD_FACTOR;
-			}else{ //punish
-				hiddenvals.at(j).weights.at(i) *= PUNISHMENT_FACTOR;
-			}
-		}
-	}
-	//for each output, propagate through the hidden and input's weights
-	std::vector<double> hidden_correctness_vals;
-	for(int k = 0; k < num_hidden; ++k){
-		double avg = 0.0;
-		int num_contributions = 0;
-		for(int j = 0; j < num_outputs; ++j){
-			//compute hidden correctness values
-			if(outputvals.at(j).node_val == solution.at(j)){
-				++num_contributions;
-				avg += 1.0 * hiddenvals.at(k).weights.at(j);
-			}
-		}
-		avg /= num_contributions;
-		//printf("Hidden Layer %d correctness value (avg weight going to outputs): %f\n", k, avg);
-		//change input-hidden weights
-		for(int j = 0; j < num_inputs; ++j){
-			if(avg < 0.50){
-				inputvals.at(j).weights.at(k) *= (PUNISHMENT_FACTOR * avg);
-			}else{
-				inputvals.at(j).weights.at(k) *= (REWARD_FACTOR * avg);
-			}
-		}
-	}
+
+}
+
+//computes the fast sigmoid value of the input value.
+// Domain: (-inf,+inf) Range: (-1,1)
+double NeuralNet::sigmoid(double x){
+    return x / (1.0 + abs(x));
 }
 
 //reseeds network and weights, must have already been initialized/ 
@@ -309,7 +317,7 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
             //4) load withheld value
             //5) compute guess
             //6) score based on the withheld value.
-            exit(0);
+            exit(0); //<**********************************************************************************######################
 		}
 	}else{
 		std::cout << "Nothing was done." << std::endl;
@@ -317,3 +325,28 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 	return results;
 }
 
+void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
+    printf("\n");
+    printNodes();
+
+    //try forward pass of data with first data point
+    //1)
+    double subtotals[numHiddens()];
+    for(int a=0;a<numHiddens();++a){
+        double total = 0.0;
+        double max = 0.0;
+        for(int b=0;b<numInputs();++b){
+            //printf("\t%f * %f = %f\n", inputvals.at(b).weights.at(a), inputvals.at(b).node_val, inputvals.at(b).weights.at(a) * inputvals.at(b).node_val);
+            total += inputvals.at(b).weights.at(a) * inputvals.at(b).node_val;
+            max += inputvals.at(b).weights.at(a) * MAX_NODE_VALUE;
+        }
+        double halfmax = max / 2;
+        double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
+        printf("Total Input to Hidden node %d (%f) / Max Input (%f) => %f ", a, total, max, total-halfmax);
+        printf(" > (sig(%f)+1)/2 * MAX_VAL = %f\n", total-halfmax, newnodeval);
+    }
+
+    //then try backprop of data
+    //2) 
+
+}
