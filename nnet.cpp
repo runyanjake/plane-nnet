@@ -128,7 +128,7 @@ void NeuralNet::printWeights(){
 }
 
 //evaluates right or wrongness of output
-//Returns array depicting depression values relative to eachother and one to strengthen (the 0 value)
+//correct answer is 0, all others are naked value difference.
 std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
     std::vector<double> correctionvals;
 	double maxval = -1.0;
@@ -139,10 +139,15 @@ std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
             index = a;
         }
     }
+    // printf("\ngetCorrectionAmounts with answer %c: [", solution);
+    double total = 0.0;
     for(int a=0;a<numOutputs();++a){
-        double correctionvalue = maxval - outputvals.at(a).node_val; //are these normalized between 0 and 1? even if the max node val is too high?
+        double correctionvalue = std::abs(outputvals.at(((int)solution)-97).node_val - outputvals.at(a).node_val); //numeric value relative to correct value
         correctionvals.push_back(correctionvalue);
+        // printf("%f ", correctionvalue);
+        total += correctionvalue;
     }
+    // printf("]\nCorrectionTotal: %f\n\n", total);
     return correctionvals;
 }
 
@@ -386,19 +391,58 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     //then try backprop of data
     //2) 
     //2.1) evaluate desired amound of correction
-    char answer = 'z';
+    char answer = 'm';
     std::vector<double> outCorrections = getCorrectionAmounts(answer);
-    for(int a=0;a<numOutputs();++a){
-        //look at value in outcorrections to determine correction factor
-        double correctionLevel = outCorrections.at(a);
-        if(correctionLevel == 0.0){
-            printf("Increase this value! Val = %f\n", correctionLevel);
-        }else{
-            printf("Decrease this value! Val = %f\n", correctionLevel);
+
+    //Find correctness ranges
+    double maxCorrectnessValue = outCorrections.at(0);
+    int maxCorrectnessValueIndex = 0;
+    double minCorrectnessValue = outCorrections.at(0);
+    int minCorrectnessValueIndex = 0;
+    for(int a=1;a<numOutputs();++a){
+        if(outCorrections.at(a) > maxCorrectnessValue){
+            maxCorrectnessValue = outCorrections.at(a);
+            maxCorrectnessValueIndex = a;
+        }else if(outCorrections.at(a) < minCorrectnessValue && outCorrections.at(a) > 0.0){
+            minCorrectnessValue = outCorrections.at(a);
+            minCorrectnessValueIndex = a;
         }
-        //update first order weights
-        //update second order weights
-        //done!
+    }
+    // printf("Largest Delta From Correct: %f/%d. Smallest Delta From Correct : %f/%d.\n", maxCorrectnessValue, maxCorrectnessValueIndex, minCorrectnessValue, minCorrectnessValueIndex);
+
+    //Assign punishments for each output node as a percentage of the max.
+    std::vector<double> outputPunishments; //total contributions is numoutputs per weight
+    double punishRange = maxCorrectnessValue - minCorrectnessValue;
+    for(int a=0;a<numOutputs();++a){
+        if(outCorrections.at(a) != 0.0){
+            double punishFactor = ((outCorrections.at(a) - minCorrectnessValue) / punishRange) * MAX_PUNISHMENT_FACTOR;
+            if(punishFactor < MIN_PUNISHMENT_FACTOR){
+                outputPunishments.push_back(MIN_PUNISHMENT_FACTOR);
+            }else if(punishFactor > MAX_PUNISHMENT_FACTOR){
+                outputPunishments.push_back(MAX_PUNISHMENT_FACTOR);
+            }else{
+                outputPunishments.push_back(punishFactor);
+            }
+        }else{
+            outputPunishments.push_back(0.0);
+        }
+    }
+
+    //calculate hidden node correctness to determine second-tier backprop direction
+    //in an actual net this would be the delta calculation stage
+    for(int a=0;a<numOutputs();++a){    
+        //look at value in outcorrections to determine correctness of hidden layer
+        double correctionLevel = outCorrections.at(a);
+        for(int b=0;b<numHiddens();++b){
+            if(correctionLevel == 0.0){
+                // printf("Rewarding connections leading to %d : val: %f\n", a, correctionLevel);
+                //create list of indices ordering connections from highest to lowest weight
+                //modify weights based on some range from MAX - MIN node values
+            }else{
+                // printf("Punishing connections leading to %d : val: %f\n", a, correctionLevel);
+                
+            }
+        }
     }
 
 }
