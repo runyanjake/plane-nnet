@@ -127,9 +127,18 @@ void NeuralNet::printWeights(){
 	}
 }
 
+//Prints a vector of doubles in human readable form
+void NeuralNet::printDoubleVector(std::vector<double> vect){
+    printf("[");
+    for(unsigned long a=0;a<vect.size();++a){
+        printf("%f ", vect.at(a));
+    }
+    printf("]\n");
+}
+
 //evaluates right or wrongness of output
 //correct answer is 0, all others are naked value difference.
-std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
+std::vector<double> NeuralNet::getCorrectValueOffsets(char solution){
     std::vector<double> correctionvals;
 	double maxval = -1.0;
     int index = -1;
@@ -139,15 +148,13 @@ std::vector<double> NeuralNet::getCorrectionAmounts(char solution){
             index = a;
         }
     }
-    // printf("\ngetCorrectionAmounts with answer %c: [", solution);
-    double total = 0.0;
+    printf("\ngetCorrectValueOffsets with answer %c: [", solution);
     for(int a=0;a<numOutputs();++a){
-        double correctionvalue = std::abs(outputvals.at(((int)solution)-97).node_val - outputvals.at(a).node_val); //numeric value relative to correct value
+        double correctionvalue = outputvals.at(a).node_val - (outputvals.at(((int)solution)-97).node_val); //numeric value relative to correct value
         correctionvals.push_back(correctionvalue);
-        // printf("%f ", correctionvalue);
-        total += correctionvalue;
+        printf("%f ", correctionvalue);
     }
-    // printf("]\nCorrectionTotal: %f\n\n", total);
+    printf("\n");
     return correctionvals;
 }
 
@@ -392,57 +399,95 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     //2) 
     //2.1) evaluate desired amound of correction
     char answer = 'm';
-    std::vector<double> outCorrections = getCorrectionAmounts(answer);
 
-    //Find correctness ranges
-    double maxCorrectnessValue = outCorrections.at(0);
-    int maxCorrectnessValueIndex = 0;
-    double minCorrectnessValue = outCorrections.at(0);
-    int minCorrectnessValueIndex = 0;
+    //holds numeric offset such that negative values indicate a need to add (basically the opposite)
+    std::vector<double> correctValueOffsets = getCorrectValueOffsets(answer);
+
+    //Find range of offsets (all that matters is the absolute max (and min))
+    double maxCorrectValueOffset = correctValueOffsets.at(0);
+    int maxCorrectValueOffsetIndex = 0;
+    double minCorrectValueOffset = correctValueOffsets.at(0);
+    int minCorrectValueOffsetIndex = 0;
     for(int a=1;a<numOutputs();++a){
-        if(outCorrections.at(a) > maxCorrectnessValue){
-            maxCorrectnessValue = outCorrections.at(a);
-            maxCorrectnessValueIndex = a;
-        }else if(outCorrections.at(a) < minCorrectnessValue && outCorrections.at(a) > 0.0){
-            minCorrectnessValue = outCorrections.at(a);
-            minCorrectnessValueIndex = a;
+        if(std::abs(correctValueOffsets.at(a)) > maxCorrectValueOffset){
+            maxCorrectValueOffset = std::abs(correctValueOffsets.at(a));
+            maxCorrectValueOffsetIndex = a;
+        }else if(std::abs(correctValueOffsets.at(a)) < minCorrectValueOffset && std::abs(correctValueOffsets.at(a)) > 0.0){
+            minCorrectValueOffset = std::abs(correctValueOffsets.at(a));
+            minCorrectValueOffsetIndex = a;
         }
     }
-    // printf("Largest Delta From Correct: %f/%d. Smallest Delta From Correct : %f/%d.\n", maxCorrectnessValue, maxCorrectnessValueIndex, minCorrectnessValue, minCorrectnessValueIndex);
+    printf("Largest Delta (abs) From Correct: %f/%d. Smallest Delta (abs) From Correct : %f/%d.\n", maxCorrectValueOffset, maxCorrectValueOffsetIndex, minCorrectValueOffset, minCorrectValueOffsetIndex);
 
-    //Assign punishments for each output node as a percentage of the max.
-    std::vector<double> outputPunishments; //total contributions is numoutputs per weight
-    double punishRange = maxCorrectnessValue - minCorrectnessValue;
+    //Scale Punishment factors according to network values
+    //Between [MIN_PUNISHMENT_FACTOR, MAX_PUNISHMENT_FACTOR] with the 0'd value as MAX_REWARD_FACTOR
+    std::vector<double> outputWills; //"Will" of a node to pass on its value. Between 0 and 100%
+    double punishRange = maxCorrectValueOffset - minCorrectValueOffset;
     for(int a=0;a<numOutputs();++a){
-        if(outCorrections.at(a) != 0.0){
-            double punishFactor = ((outCorrections.at(a) - minCorrectnessValue) / punishRange) * MAX_PUNISHMENT_FACTOR;
-            if(punishFactor < MIN_PUNISHMENT_FACTOR){
-                outputPunishments.push_back(MIN_PUNISHMENT_FACTOR);
-            }else if(punishFactor > MAX_PUNISHMENT_FACTOR){
-                outputPunishments.push_back(MAX_PUNISHMENT_FACTOR);
+        if(correctValueOffsets.at(a) != 0.0){
+            double willFactor = ((correctValueOffsets.at(a) - minCorrectValueOffset) / punishRange) * MAX_PUNISHMENT_FACTOR;
+            if(willFactor < MIN_PUNISHMENT_FACTOR){
+                outputWills.push_back(MIN_PUNISHMENT_FACTOR);
+            }else if(willFactor > MAX_PUNISHMENT_FACTOR){
+                outputWills.push_back(MAX_PUNISHMENT_FACTOR);
             }else{
-                outputPunishments.push_back(punishFactor);
+                outputWills.push_back(willFactor);
             }
         }else{
-            outputPunishments.push_back(0.0);
+            outputWills.push_back(MAX_REWARD_FACTOR);
         }
     }
 
-    //calculate hidden node correctness to determine second-tier backprop direction
-    //in an actual net this would be the delta calculation stage
-    for(int a=0;a<numOutputs();++a){    
-        //look at value in outcorrections to determine correctness of hidden layer
-        double correctionLevel = outCorrections.at(a);
+    printNodes();
+    printf("OutputWills: ");
+    printDoubleVector(outputWills);
+
+    //****
+    //**** Secondary Punishments: do rewards ONLY, and then scale everything between min and max weight values.
+    //****
+
+    //create and zero array for both primary and secondary weights
+    std::vector<std::vector<double>> hiddenPunishments;
+
+    for(int a=0;a<numInputs();++a){
+        std::vector<double> tmp;
         for(int b=0;b<numHiddens();++b){
-            if(correctionLevel == 0.0){
-                // printf("Rewarding connections leading to %d : val: %f\n", a, correctionLevel);
-                //create list of indices ordering connections from highest to lowest weight
-                //modify weights based on some range from MAX - MIN node values
-            }else{
-                // printf("Punishing connections leading to %d : val: %f\n", a, correctionLevel);
-                
+            tmp.push_back(0.0);
+        }
+        hiddenPunishments.push_back(tmp);
+    }
+
+
+    //GoaL: obtain matrix of factors to multiply weight matrices by
+    //Have: relative punishments such that punish(a) = value that all weights leading up to a's output should be multiplied by
+    //What the vectors hold:
+    //      getCorrectValueOffsets() -> distance from correct percentage weight thing (is absolute value only)
+    //      
+    //first order weights can be multiplied without storing, but their original weights need to be used to calculate second-tier modifications
+    //proposed plan: do some sort of math to get raw hidden punishments, find max and range, then scale everything between MIN/MAX Punishments
+
+
+    //going to try again a simple average of incoming punishments
+    for(int a=0;a<numOutputs();++a){
+        for(int b=0;b<numHiddens();++b){
+            for(int c=0;c<numInputs();++c){
+                hiddenPunishments.at(c).at(b) += outputWills.at(a) * inputvals.at(c).weights.at(b);
             }
         }
+    }
+    for(int b=0;b<numHiddens();++b){
+        for(int c=0;c<numInputs();++c){
+            //hiddenPunishments.at(c).at(b) /= ;
+        }
+    }
+
+    //F
+
+
+    printf("\n\nPunishment Matrices For Weights:\n");
+    printDoubleVector(outputWills);
+    for(int a=0;a<numInputs();++a){
+        printDoubleVector(hiddenPunishments.at(a));
     }
 
 }

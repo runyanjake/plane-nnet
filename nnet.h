@@ -8,10 +8,10 @@
 #define MAX_CONNECTION_VALUE 95 //PERCENTAGE
 #define MAX_NODE_VALUE 5.0 //MAXIMUM INTEGER VAL
 #define MIN_NODE_VALUE 0.0 //MINIMUM INTEGER VAL
-#define MAX_REWARD_FACTOR 1.15
-#define MIN_REWARD_FACTOR 1.15
-#define MAX_PUNISHMENT_FACTOR 0.97 
-#define MIN_PUNISHMENT_FACTOR 0.10 
+#define MAX_REWARD_FACTOR 1.15 //highest value a weight can be modified by
+#define MIN_REWARD_FACTOR 1.15 //delete?
+#define MAX_PUNISHMENT_FACTOR 0.97 //highest value a weight can be modified by
+#define MIN_PUNISHMENT_FACTOR 0.10 //lowest value a weight can be modified by
 
 typedef struct node {
 	float node_val;
@@ -37,8 +37,9 @@ public:
 	void printNodes();
 	void printNodesOCRformat();
 	void printWeights();
+    void printDoubleVector(std::vector<double> vect);
 
-	std::vector<double> getCorrectionAmounts(char solution);
+	std::vector<double> getCorrectValueOffsets(char solution);
     bool evaluate(char solution);
 	void forwardpropagate();
 	void backpropagate(std::vector<double> solution);
