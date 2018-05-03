@@ -165,15 +165,18 @@ std::vector<double> NeuralNet::getCorrectValueOffsets(char solution){
 //returns true if network guesses the passed character, false if not
 bool NeuralNet::evaluate(char solution){
     double maxval = -1.0;
+    double totalval = 0.0;
     int index = -1;
     for(int a=0;a<numOutputs();++a){
         printf("Comparing %f and %f.\n", outputvals.at(a).node_val, maxval);
+        totalval += outputvals.at(a).node_val;
         if(outputvals.at(a).node_val > maxval){
             maxval = outputvals.at(a).node_val;
             index = a;
         }
     }
-    printf("The network guesses %c. (index=%d)\n", index+97, index);
+    printf("Total : %f\n", totalval);
+    printf("The network guesses %c with %.2f%% accuracy. (index=%d)\n", index+97, maxval/totalval*100.0, index);
     if(index==((int)solution)-97)
         return true;
     return false;
