@@ -42,8 +42,9 @@ public:
 	std::vector<double> getCorrectValueOffsets(char solution);
     bool evaluate(char solution);
 	void forwardpropagate();
-	void backpropagate(std::vector<double> solution);
+	void backpropagate(std::vector<double> outputWills);
     double sigmoid(double x);
+    std::vector<double> getOutputWills(char answer);
 
 	void makeGuessFromInput(); //TODO, should produce multiple guesses with probability guesses
 

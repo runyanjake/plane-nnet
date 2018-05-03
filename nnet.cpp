@@ -175,7 +175,7 @@ bool NeuralNet::evaluate(char solution){
 }
 
 // Passing values forward, modifies all hidden and output nodes
-// @param data A single input sized vector
+// Must have had data loaded into the input nodes for this to work.
 void NeuralNet::forwardpropagate(){
     //1) update hiddens
     for(int a=0;a<numHiddens();++a){
@@ -216,14 +216,103 @@ void NeuralNet::forwardpropagate(){
 }
 
 //Backpropagation
-void NeuralNet::backpropagate(std::vector<double> solution){
-
+//Acts on a network that has been forward propagated. 
+//Requires an "outputwills" vector holding the 'will' of output nodes to backpropagate.
+void NeuralNet::backpropagate(std::vector<double> outputWills){
+    //**** First do Secondary weights
+    //propagate ONLY rewards
+    for(int a=0;a<numOutputs();++a){
+        if(outputWills.at(a) == MAX_REWARD_FACTOR){
+            for(int b=0;b<numHiddens();++b){
+                for(int c=0;c<numInputs();++c){
+                    inputvals.at(c).weights.at(b) *= MAX_REWARD_FACTOR;
+                }
+            }
+        }
+    }
+    //normalize between intended range
+    double maxIHweight = inputvals.at(0).weights.at(0);
+    double minIHweight = inputvals.at(0).weights.at(0);
+    for(int b=0;b<numHiddens();++b){
+        for(int c=1;c<numInputs();++c){
+            if(inputvals.at(c).weights.at(b) > maxIHweight)
+                maxIHweight = inputvals.at(c).weights.at(b);
+            if(inputvals.at(c).weights.at(b) < minIHweight)
+                minIHweight = inputvals.at(c).weights.at(b);
+        }
+    }
+    for(int b=0;b<numHiddens();++b){
+        for(int c=1;c<numInputs();++c){
+            inputvals.at(c).weights.at(b) = ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE) / 100.0;
+        }
+    }
+    //**** Second do Primary weights
+    //propagate ONLY rewards
+    for(int a=0;a<numOutputs();++a){
+        if(outputWills.at(a) == MAX_REWARD_FACTOR){
+            for(int b=0;b<numHiddens();++b){
+                hiddenvals.at(b).weights.at(a) *= MAX_REWARD_FACTOR;
+            }
+        }
+    }
+    //normalize between intended range
+    double maxHOweight = hiddenvals.at(0).weights.at(0);
+    double minHOweight = hiddenvals.at(0).weights.at(0);
+    for(int b=0;b<numOutputs();++b){
+        for(int c=1;c<numHiddens();++c){
+            if(hiddenvals.at(c).weights.at(b) > maxHOweight)
+                maxHOweight = hiddenvals.at(c).weights.at(b);
+            if(hiddenvals.at(c).weights.at(b) < minHOweight)
+                minHOweight = hiddenvals.at(c).weights.at(b);
+        }
+    }
+    for(int b=0;b<numOutputs();++b){
+        for(int c=1;c<numHiddens();++c){
+            hiddenvals.at(c).weights.at(b) = ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE) / 100.0;
+        }
+    }
 }
 
 //computes the fast sigmoid value of the input value.
 // Domain: (-inf,+inf) Range: (-1,1)
 double NeuralNet::sigmoid(double x){
     return x / (1.0 + std::abs(x));
+}
+
+//gets output wills, to be used in backpropagation
+//These are output wills with one as MAX_REWARD_VALUE and the others between the 2 PUNISH values
+std::vector<double> NeuralNet::getOutputWills(char answer){
+    std::vector<double> correctValueOffsets = getCorrectValueOffsets(answer);
+    double maxCorrectValueOffset = correctValueOffsets.at(0);
+    int maxCorrectValueOffsetIndex = 0;
+    double minCorrectValueOffset = correctValueOffsets.at(0);
+    int minCorrectValueOffsetIndex = 0;
+    for(int a=1;a<numOutputs();++a){
+        if(std::abs(correctValueOffsets.at(a)) > maxCorrectValueOffset){
+            maxCorrectValueOffset = std::abs(correctValueOffsets.at(a));
+            maxCorrectValueOffsetIndex = a;
+        }else if(std::abs(correctValueOffsets.at(a)) < minCorrectValueOffset && std::abs(correctValueOffsets.at(a)) > 0.0){
+            minCorrectValueOffset = std::abs(correctValueOffsets.at(a));
+            minCorrectValueOffsetIndex = a;
+        }
+    }
+    std::vector<double> outputWills; //"Will" of a node to pass on its value. Between 0 and 100%
+    double punishRange = maxCorrectValueOffset - minCorrectValueOffset;
+    for(int a=0;a<numOutputs();++a){
+        if(correctValueOffsets.at(a) != 0.0){
+            double willFactor = ((correctValueOffsets.at(a) - minCorrectValueOffset) / punishRange) * MAX_PUNISHMENT_FACTOR;
+            if(willFactor < MIN_PUNISHMENT_FACTOR){
+                outputWills.push_back(MIN_PUNISHMENT_FACTOR);
+            }else if(willFactor > MAX_PUNISHMENT_FACTOR){
+                outputWills.push_back(MAX_PUNISHMENT_FACTOR);
+            }else{
+                outputWills.push_back(willFactor);
+            }
+        }else{
+            outputWills.push_back(MAX_REWARD_FACTOR);
+        }
+    }
+    return outputWills;
 }
 
 //reseeds network and weights, must have already been initialized/ 
@@ -349,9 +438,9 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 				std::vector<std::string> datum = data.at(ctr);
 				if(ctr != holdoutIndex){
                     nnet.setInputs(datum, inputMethod); //load data in with specified method
-					//\nnet.trainForward(datum); TODO
-					std::string solution = datum.at(1); //returns char + nullplug
-					//nnet.backpropagate(solution); string.at??
+					nnet.forwardpropagate();
+					char solution = datum.at(1).at(0); //returns char + nullplug
+                    nnet.backpropagate(nnet.getOutputWills(solution));
 				}
                 //2) determine correctness
                 //3) punish/reward accordingly
@@ -443,19 +532,79 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     printDoubleVector(outputWills);
 
     //****
-    //**** Secondary Punishments: do rewards ONLY, and then scale everything between min and max weight values.
+    //**** This other (naiive?) way to do it: do rewards ONLY, and then scale everything between min and max weight values.
     //****
 
-    //create and zero array for both primary and secondary weights
-    std::vector<std::vector<double>> hiddenPunishments;
-
-    for(int a=0;a<numInputs();++a){
-        std::vector<double> tmp;
-        for(int b=0;b<numHiddens();++b){
-            tmp.push_back(0.0);
+    //**** First do Secondary weights
+    //propagate ONLY rewards
+    for(int a=0;a<numOutputs();++a){
+        if(outputWills.at(a) == MAX_REWARD_FACTOR){
+            for(int b=0;b<numHiddens();++b){
+                for(int c=0;c<numInputs();++c){
+                    inputvals.at(c).weights.at(b) *= MAX_REWARD_FACTOR;
+                }
+            }
         }
-        hiddenPunishments.push_back(tmp);
     }
+    //normalize between intended range
+    double maxIHweight = inputvals.at(0).weights.at(0);
+    double minIHweight = inputvals.at(0).weights.at(0);
+    for(int b=0;b<numHiddens();++b){
+        for(int c=1;c<numInputs();++c){
+            if(inputvals.at(c).weights.at(b) > maxIHweight)
+                maxIHweight = inputvals.at(c).weights.at(b);
+            if(inputvals.at(c).weights.at(b) < minIHweight)
+                minIHweight = inputvals.at(c).weights.at(b);
+        }
+    }
+    printWeights();
+    printf("Max weight is: %f Min weight is: %f\n", maxIHweight, minIHweight);
+    for(int b=0;b<numHiddens();++b){
+        for(int c=1;c<numInputs();++c){
+            printf("Updating value %f to %f.\n", inputvals.at(c).weights.at(b), ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE) / 100.0);
+            inputvals.at(c).weights.at(b) = ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE) / 100.0;
+        }
+    }
+
+    //**** Second do Primary weights
+    //propagate ONLY rewards
+    for(int a=0;a<numOutputs();++a){
+        if(outputWills.at(a) == MAX_REWARD_FACTOR){
+            for(int b=0;b<numHiddens();++b){
+                hiddenvals.at(b).weights.at(a) *= MAX_REWARD_FACTOR;
+            }
+        }
+    }
+    //normalize between intended range
+    double maxHOweight = hiddenvals.at(0).weights.at(0);
+    double minHOweight = hiddenvals.at(0).weights.at(0);
+    for(int b=0;b<numOutputs();++b){
+        for(int c=1;c<numHiddens();++c){
+            if(hiddenvals.at(c).weights.at(b) > maxHOweight)
+                maxHOweight = hiddenvals.at(c).weights.at(b);
+            if(hiddenvals.at(c).weights.at(b) < minHOweight)
+                minHOweight = hiddenvals.at(c).weights.at(b);
+        }
+    }
+    printf("Max weight is: %f Min weight is: %f\n", maxHOweight, minHOweight);
+    for(int b=0;b<numOutputs();++b){
+        for(int c=1;c<numHiddens();++c){
+            printf("Updating value %f to %f.\n", hiddenvals.at(c).weights.at(b), ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE) / 100.0);
+            hiddenvals.at(c).weights.at(b) = ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE) / 100.0;
+        }
+    }
+
+
+    //create and zero array for both primary and secondary weights
+    // std::vector<std::vector<double>> hiddenPunishments;
+
+    // for(int a=0;a<numInputs();++a){
+    //     std::vector<double> tmp;
+    //     for(int b=0;b<numHiddens();++b){
+    //         tmp.push_back(0.0);
+    //     }
+    //     hiddenPunishments.push_back(tmp);
+    // }
 
 
     //GoaL: obtain matrix of factors to multiply weight matrices by
@@ -468,26 +617,26 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
 
 
     //going to try again a simple average of incoming punishments
-    for(int a=0;a<numOutputs();++a){
-        for(int b=0;b<numHiddens();++b){
-            for(int c=0;c<numInputs();++c){
-                hiddenPunishments.at(c).at(b) += outputWills.at(a) * inputvals.at(c).weights.at(b);
-            }
-        }
-    }
-    for(int b=0;b<numHiddens();++b){
-        for(int c=0;c<numInputs();++c){
-            //hiddenPunishments.at(c).at(b) /= ;
-        }
-    }
+    // for(int a=0;a<numOutputs();++a){
+    //     for(int b=0;b<numHiddens();++b){
+    //         for(int c=0;c<numInputs();++c){
+    //             hiddenPunishments.at(c).at(b) += outputWills.at(a) * inputvals.at(c).weights.at(b);
+    //         }
+    //     }
+    // }
+    // for(int b=0;b<numHiddens();++b){
+    //     for(int c=0;c<numInputs();++c){
+    //         //hiddenPunishments.at(c).at(b) /= ;
+    //     }
+    // }
 
     //F
 
 
-    printf("\n\nPunishment Matrices For Weights:\n");
-    printDoubleVector(outputWills);
-    for(int a=0;a<numInputs();++a){
-        printDoubleVector(hiddenPunishments.at(a));
-    }
+    // printf("\n\nPunishment Matrices For Weights:\n");
+    // printDoubleVector(outputWills);
+    // for(int a=0;a<numInputs();++a){
+    //     printDoubleVector(hiddenPunishments.at(a));
+    // }
 
 }
