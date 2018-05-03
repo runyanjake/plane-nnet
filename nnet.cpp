@@ -151,6 +151,10 @@ std::vector<double> NeuralNet::getCorrectValueOffsets(char solution){
     printf("\ngetCorrectValueOffsets with answer %c: [", solution);
     for(int a=0;a<numOutputs();++a){
         double correctionvalue = outputvals.at(a).node_val - (outputvals.at(((int)solution)-97).node_val); //numeric value relative to correct value
+        if(correctionvalue > MAX_CONNECTION_VALUE/100.0)
+            correctionvalue = MAX_CONNECTION_VALUE/100.0;
+        if(correctionvalue < MIN_CONNECTION_VALUE/100.0)
+            correctionvalue = MIN_CONNECTION_VALUE/100.0;
         correctionvals.push_back(correctionvalue);
         printf("%f ", correctionvalue);
     }
@@ -163,12 +167,13 @@ bool NeuralNet::evaluate(char solution){
     double maxval = -1.0;
     int index = -1;
     for(int a=0;a<numOutputs();++a){
+        printf("Comparing %f and %f.\n", outputvals.at(a).node_val, maxval);
         if(outputvals.at(a).node_val > maxval){
             maxval = outputvals.at(a).node_val;
             index = a;
         }
     }
-    printf("The network guesses %c.\n", index+97);
+    printf("The network guesses %c. (index=%d)\n", index+97, index);
     if(index==((int)solution)-97)
         return true;
     return false;
@@ -243,7 +248,7 @@ void NeuralNet::backpropagate(std::vector<double> outputWills){
     }
     for(int b=0;b<numHiddens();++b){
         for(int c=1;c<numInputs();++c){
-            inputvals.at(c).weights.at(b) = ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE) / 100.0;
+            inputvals.at(c).weights.at(b) = ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE/100.0 - MIN_CONNECTION_VALUE/100.0)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE/100.0);
         }
     }
     //**** Second do Primary weights
@@ -268,7 +273,7 @@ void NeuralNet::backpropagate(std::vector<double> outputWills){
     }
     for(int b=0;b<numOutputs();++b){
         for(int c=1;c<numHiddens();++c){
-            hiddenvals.at(c).weights.at(b) = ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE) / 100.0;
+            hiddenvals.at(c).weights.at(b) = ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE/100.0 - MIN_CONNECTION_VALUE/100.0)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE/100.0);
         }
     }
 }
@@ -437,17 +442,25 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 			for(unsigned long ctr = 0; ctr < data.size(); ++ctr){
 				std::vector<std::string> datum = data.at(ctr);
 				if(ctr != holdoutIndex){
+                    //2) determine correctness
                     nnet.setInputs(datum, inputMethod); //load data in with specified method
 					nnet.forwardpropagate();
 					char solution = datum.at(1).at(0); //returns char + nullplug
+                    //3) punish/reward accordingly
                     nnet.backpropagate(nnet.getOutputWills(solution));
 				}
-                //2) determine correctness
-                //3) punish/reward accordingly
+                printf("%d/%d\n", ctr, data.size());
 			}
             //4) load withheld value
+            std::vector<std::string> heldout = data.at(holdoutIndex);
             //5) compute guess
+            nnet.setInputs(heldout, inputMethod);
+            nnet.forwardpropagate();
             //6) score based on the withheld value.
+            printf("Network guessing on withheld value %d with correct value %c\n", holdoutIndex, heldout.at(1).at(0));
+            bool correct = nnet.evaluate(heldout.at(0).at(0));
+            if(correct) printf("The network guessed correctly.\n");
+            if(!correct) printf("The network guessed incorrectly.\n");
             exit(0); //<**********************************************************************************######################
 		}
 	}else{
@@ -561,8 +574,8 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     printf("Max weight is: %f Min weight is: %f\n", maxIHweight, minIHweight);
     for(int b=0;b<numHiddens();++b){
         for(int c=1;c<numInputs();++c){
-            printf("Updating value %f to %f.\n", inputvals.at(c).weights.at(b), ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE) / 100.0);
-            inputvals.at(c).weights.at(b) = ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE) / 100.0;
+            printf("Updating value %f to %f.\n", inputvals.at(c).weights.at(b), ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE/100.0 - MIN_CONNECTION_VALUE/100.0)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE/100.0));
+            inputvals.at(c).weights.at(b) = ((((inputvals.at(c).weights.at(b) - minIHweight) * (MAX_CONNECTION_VALUE/100.0 - MIN_CONNECTION_VALUE/100.0)) / (maxIHweight - minIHweight)) + MIN_CONNECTION_VALUE/100.0);
         }
     }
 
@@ -589,8 +602,8 @@ void NeuralNet::debugTest(std::vector<std::vector<std::string>> data){
     printf("Max weight is: %f Min weight is: %f\n", maxHOweight, minHOweight);
     for(int b=0;b<numOutputs();++b){
         for(int c=1;c<numHiddens();++c){
-            printf("Updating value %f to %f.\n", hiddenvals.at(c).weights.at(b), ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE) / 100.0);
-            hiddenvals.at(c).weights.at(b) = ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE - MIN_CONNECTION_VALUE)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE) / 100.0;
+            printf("Updating value %f to %f.\n", hiddenvals.at(c).weights.at(b), ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE/100.0 - MIN_CONNECTION_VALUE/100.0)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE/100.0));
+            hiddenvals.at(c).weights.at(b) = ((((hiddenvals.at(c).weights.at(b) - minHOweight) * (MAX_CONNECTION_VALUE/100.0 - MIN_CONNECTION_VALUE/100.0)) / (maxHOweight - minHOweight)) + MIN_CONNECTION_VALUE/100.0);
         }
     }
 
