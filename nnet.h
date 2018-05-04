@@ -40,6 +40,7 @@ public:
     void printDoubleVector(std::vector<double> vect);
 
 	std::vector<double> getCorrectValueOffsets(char solution);
+    double getMaxOutputValue();
     bool evaluate(char solution);
 	void forwardpropagate();
 	void backpropagate(std::vector<double> outputWills);
@@ -54,6 +55,7 @@ public:
 	void begin_log();
 	FILE* begin_entries();
 	void entry(int numcorrect, FILE* log, int log_width);
+    void entry_percent_confidence(double acc_ratio, int log_width);
 	void finish_entries(FILE* closer);
 	void finish_log();
 

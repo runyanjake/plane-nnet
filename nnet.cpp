@@ -148,7 +148,7 @@ std::vector<double> NeuralNet::getCorrectValueOffsets(char solution){
             index = a;
         }
     }
-    printf("\ngetCorrectValueOffsets with answer %c: [", solution);
+    //printf("\ngetCorrectValueOffsets with answer %c: [", solution);
     for(int a=0;a<numOutputs();++a){
         double correctionvalue = outputvals.at(a).node_val - (outputvals.at(((int)solution)-97).node_val); //numeric value relative to correct value
         if(correctionvalue > MAX_CONNECTION_VALUE/100.0)
@@ -156,10 +156,20 @@ std::vector<double> NeuralNet::getCorrectValueOffsets(char solution){
         if(correctionvalue < MIN_CONNECTION_VALUE/100.0)
             correctionvalue = MIN_CONNECTION_VALUE/100.0;
         correctionvals.push_back(correctionvalue);
-        printf("%f ", correctionvalue);
+        //printf("%f ", correctionvalue);
     }
-    printf("\n");
+    //printf("\n");
     return correctionvals;
+}
+
+double NeuralNet::getMaxOutputValue(){
+    double maxval = -1.0;
+    for(int a=0;a<numOutputs();++a){
+        if(outputvals.at(a).node_val > maxval){
+            maxval = outputvals.at(a).node_val;
+        }
+    }
+    return maxval;
 }
 
 //returns true if network guesses the passed character, false if not
@@ -168,14 +178,12 @@ bool NeuralNet::evaluate(char solution){
     double totalval = 0.0;
     int index = -1;
     for(int a=0;a<numOutputs();++a){
-        printf("Comparing %f and %f.\n", outputvals.at(a).node_val, maxval);
         totalval += outputvals.at(a).node_val;
         if(outputvals.at(a).node_val > maxval){
             maxval = outputvals.at(a).node_val;
             index = a;
         }
     }
-    printf("Total : %f\n", totalval);
     printf("The network guesses %c with %.2f%% accuracy. (index=%d)\n", index+97, maxval/totalval*100.0, index);
     if(index==((int)solution)-97)
         return true;
@@ -408,6 +416,16 @@ void NeuralNet::entry(int numcorrect, FILE* log, int log_width){
 	fprintf(log, "] Accuracy was %.2f percent.\n", acc_ratio*100);
 }
 
+void NeuralNet::entry_percent_confidence(double acc_ratio, int log_width){
+    FILE* log = fopen("log.txt", "a");
+	int numticks = (int)((double)log_width * acc_ratio);
+	fprintf(log, "[");
+	for(int a = 0; a < numticks; ++a) fprintf(log, "=");
+	for(int a = 0; a < log_width - numticks; ++a) fprintf(log, " ");
+	fprintf(log, "] Confidence was %.2f percent.\n", acc_ratio*100);
+    fclose(log);
+}
+
 void NeuralNet::finish_entries(FILE* closer){
 	fclose(closer);
 }
@@ -432,6 +450,7 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 	else{ std::cerr << "[INPUT FORMAT NOT RECOGNIZED]" << std::endl; } 
 	//Metrics
 	testResult results = {-1, -1, -1, -1.0, "[]"}; //load into this at end
+    nnet.begin_log();
 	int numAttempted = 0;
 	int numPassed = 0;
 	int numFailed = 0;
@@ -462,9 +481,11 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
             //6) score based on the withheld value.
             printf("Network guessing on withheld value %d with correct value %c\n", holdoutIndex, heldout.at(1).at(0));
             bool correct = nnet.evaluate(heldout.at(0).at(0));
-            if(correct) printf("The network guessed correctly.\n");
-            if(!correct) printf("The network guessed incorrectly.\n");
-            exit(0); //<**********************************************************************************######################
+            if(correct) printf("The network guessed correctly.\n\n");
+            if(!correct) printf("The network guessed incorrectly.\n\n");
+            //7) Log entry
+            nnet.entry_percent_confidence(nnet.getMaxOutputValue(), 72);
+            //exit(0); //<**********************************************************************************######################
 		}
 	}else{
 		std::cout << "Nothing was done." << std::endl;
