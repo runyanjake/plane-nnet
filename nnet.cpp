@@ -426,6 +426,23 @@ void NeuralNet::entry_percent_confidence(double acc_ratio, int log_width){
     fclose(log);
 }
 
+void NeuralNet::print_ho_weights_to_file(FILE* log, double iter){
+    fprintf(log, "Weights at iter %f:\t", iter);
+    for(int a = 0; a < numHiddens(); ++a){
+        for(int b = 0; b < numOutputs(); ++b){
+            fprintf(log, "%f ", hiddenvals.at(a).weights.at(b));
+        }
+    }
+    // fprintf(log, "%f ", iter);
+    // for(int a = 0; a < numHiddens(); ++a){
+    //     for(int b = 0; b < numOutputs(); ++b){
+    //         fprintf(log, "%f ", hiddenvals.at(a).node_val);
+    //     }
+    // }
+    fprintf(log, "\n");
+    
+}
+
 void NeuralNet::finish_entries(FILE* closer){
 	fclose(closer);
 }
@@ -455,6 +472,7 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 	int numPassed = 0;
 	int numFailed = 0;
 	double passingRate = 0.0;
+    FILE* log_weights = fopen("log_weights.txt", "w");
 	if(inputMethod == 'b'){
 		//another method!!!
 	}else if(inputMethod == 's'){
@@ -470,6 +488,15 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 					char solution = datum.at(1).at(0); //returns char + nullplug
                     //3) punish/reward accordingly
                     nnet.backpropagate(nnet.getOutputWills(solution));
+
+
+
+                    printf("Nodes after %d passage(s) of training:\n", ctr);
+                    nnet.printNodes();
+                    nnet.print_ho_weights_to_file(log_weights, ctr);
+
+
+
 				}
                 printf("%d/%d\n", ctr, data.size());
 			}
@@ -490,6 +517,7 @@ testResult Tester::singleHoldoutTesting(NeuralNet nnet, std::vector<std::vector<
 	}else{
 		std::cout << "Nothing was done." << std::endl;
 	}
+    fclose(log_weights);
 	return results;
 }
 

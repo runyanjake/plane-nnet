@@ -56,6 +56,7 @@ public:
 	FILE* begin_entries();
 	void entry(int numcorrect, FILE* log, int log_width);
     void entry_percent_confidence(double acc_ratio, int log_width);
+    void print_ho_weights_to_file(FILE* log, double iter);
 	void finish_entries(FILE* closer);
 	void finish_log();
 
