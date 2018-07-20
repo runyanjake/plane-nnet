@@ -201,6 +201,7 @@ void NeuralNet::forwardpropagate(){
             total += inputvals.at(b).weights.at(a) * inputvals.at(b).node_val;
             max += inputvals.at(b).weights.at(a) * MAX_NODE_VALUE;
         }
+        total += BIAS; //Apply bias.
         double halfmax = max / 2;
         double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
         hiddenvals.at(a).node_val = newnodeval;
@@ -214,6 +215,7 @@ void NeuralNet::forwardpropagate(){
             total += hiddenvals.at(b).weights.at(a) * hiddenvals.at(b).node_val;
             max += hiddenvals.at(b).weights.at(a) * MAX_NODE_VALUE;
         }
+        total += BIAS; //Apply bias.
         double halfmax = max / 2;
         double newnodeval = ((sigmoid(total-halfmax)+1.0)/2.0) * MAX_NODE_VALUE; //this is the proposed new node value based on prev outputs
         rawvals.push_back(newnodeval);

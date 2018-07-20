@@ -12,6 +12,7 @@
 #define MIN_REWARD_FACTOR 1.15 //delete?
 #define MAX_PUNISHMENT_FACTOR 0.97 //highest value a weight can be modified by
 #define MIN_PUNISHMENT_FACTOR 0.10 //lowest value a weight can be modified by
+#define BIAS 0.01 //Bias applied to weighted sum during pass forward
 
 typedef struct node {
 	float node_val;
